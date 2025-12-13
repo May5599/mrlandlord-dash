@@ -597,6 +597,24 @@ notifications: defineTable({
 .index("by_vendor", ["vendorId"])
 .index("by_maintenance", ["maintenanceId"]),
 
+contacts: defineTable({
+  companyId: v.id("companies"),
+
+  type: v.string(),   // tenant | vendor | contractor | emergency
+  name: v.string(),
+  phone: v.string(),
+  email: v.string(),
+
+  propertyId: v.optional(v.id("properties")),
+  unitId: v.optional(v.id("units")),
+
+  notes: v.optional(v.string()),
+  createdAt: v.number(), // you used Date.now() → number
+})
+  .index("by_company", ["companyId"])
+  .index("by_type", ["type"]),
+
+
 
 });
 

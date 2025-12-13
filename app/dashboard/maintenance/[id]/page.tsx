@@ -388,7 +388,6 @@
 //   );
 // }
 
-
 "use client";
 
 import { useParams } from "next/navigation";
@@ -400,21 +399,17 @@ import { useState, useEffect } from "react";
 export default function MaintenanceDetailsPage() {
   const { id } = useParams();
 
-  // Load request
   const request = useQuery(api.maintenance.getMaintenanceById, {
     id: id as any,
   });
 
-  // Load vendors
   const vendors = useQuery(api.vendors.getVendors) ?? [];
 
-  // Mutations
   const updateRequest = useMutation(api.maintenance.updateMaintenance);
   const deleteRequest = useMutation(api.maintenance.deleteRequest);
   const assignVendor = useMutation(api.maintenance.assignVendor);
   const logHours = useMutation(api.maintenance.logHours);
 
-  // Local state
   const [updating, setUpdating] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState("");
   const [hours, setHours] = useState("");
@@ -428,32 +423,34 @@ export default function MaintenanceDetailsPage() {
     }
   }, [request]);
 
-  // Convex loading states
+  // Convex → request undefined while loading
   if (request === undefined) {
     return <p className="p-8">Loading...</p>;
   }
 
+  // Convex → null means not found
   if (request === null) {
     return <p className="p-8 text-red-500">Request not found</p>;
   }
 
-  /* ----------------------- HANDLERS ----------------------- */
+  /* ---------------------------------------------------
+        HANDLERS  (All include null-safety)
+  --------------------------------------------------- */
 
   async function handleStatusChange(e: any) {
     if (!request) return;
-
     const value = e.target.value;
-    setUpdating(true);
 
+    setUpdating(true);
     await updateRequest({
       id: request._id,
       updates: { status: value },
     });
-
     setUpdating(false);
   }
 
   async function handleSeverityChange(e: any) {
+    if (!request) return;
     const value = e.target.value;
 
     await updateRequest({
@@ -463,6 +460,8 @@ export default function MaintenanceDetailsPage() {
   }
 
   async function handleCostChange(e: any) {
+    if (!request) return;
+
     await updateRequest({
       id: request._id,
       updates: { cost: Number(e.target.value) },
@@ -470,6 +469,8 @@ export default function MaintenanceDetailsPage() {
   }
 
   async function handleAssignVendor() {
+    if (!request) return;
+
     if (!selectedVendor) {
       alert("Please select a vendor");
       return;
@@ -484,10 +485,17 @@ export default function MaintenanceDetailsPage() {
   }
 
   async function handleAddHours() {
-    if (!hours) return alert("Hours required");
+    if (!request) return;
 
-    if (!request.assignedVendorId)
-      return alert("No vendor assigned to this request");
+    if (!hours) {
+      alert("Hours required");
+      return;
+    }
+
+    if (!request.assignedVendorId) {
+      alert("No vendor assigned to this request");
+      return;
+    }
 
     await logHours({
       id: request._id,
@@ -502,14 +510,17 @@ export default function MaintenanceDetailsPage() {
   }
 
   async function handleDelete() {
+    if (!request) return;
+
     if (!confirm("Delete this maintenance request?")) return;
 
     await deleteRequest({ id: request._id });
-
     window.location.href = "/dashboard/maintenance/all";
   }
 
-  /* ----------------------- UI ----------------------- */
+  /* ---------------------------------------------------
+        UI RENDER
+  --------------------------------------------------- */
 
   const assignedVendorName =
     vendors.find((v) => v._id === request.assignedVendorId)?.name ||
@@ -746,7 +757,9 @@ export default function MaintenanceDetailsPage() {
   );
 }
 
-/* ----------------------- DETAIL UI ----------------------- */
+/* ---------------------------------------------------
+      DETAIL COMPONENT
+--------------------------------------------------- */
 function Detail({ label, value }: { label: string; value: any }) {
   return (
     <div className="p-4 border rounded-xl bg-gray-50">

@@ -469,20 +469,21 @@ export default function MaintenanceDetailsPage() {
   }
 
   async function handleAssignVendor() {
-    if (!request) return;
+  if (!request) return;
 
-    if (!selectedVendor) {
-      alert("Please select a vendor");
-      return;
-    }
-
-    await assignVendor({
-      id: request._id,
-      vendorId: selectedVendor,
-    });
-
-    alert("Vendor assigned successfully");
+  if (!selectedVendor) {
+    alert("Please select a vendor");
+    return;
   }
+
+  await assignVendor({
+    id: request._id,
+    vendorId: selectedVendor as any,   // <-- FIX
+  });
+
+  alert("Vendor assigned successfully");
+}
+
 
   async function handleAddHours() {
     if (!request) return;

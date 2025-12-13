@@ -575,20 +575,23 @@ export default function MaintenanceDetailsPage() {
         </div>
 
         {/* IMAGES */}
-        {request.images?.length > 0 && (
-          <>
-            <h3 className="mt-6 font-semibold">Attached Photos</h3>
-            <div className="grid grid-cols-3 gap-4 mt-3">
-              {request.images.map((img: string, idx: number) => (
-                <img
-                  key={idx}
-                  src={img}
-                  className="w-full h-40 object-cover rounded border"
-                />
-              ))}
-            </div>
-          </>
-        )}
+        {/* {request.images?.length > 0 && ( */}
+        {/* IMAGES */}
+{Array.isArray(request.images) && request.images.length > 0 && (
+  <>
+    <h3 className="mt-6 font-semibold">Attached Photos</h3>
+    <div className="grid grid-cols-3 gap-4 mt-3">
+      {request.images.map((img: string, idx: number) => (
+        <img
+          key={idx}
+          src={img}
+          className="w-full h-40 object-cover rounded border"
+        />
+      ))}
+    </div>
+  </>
+)}
+
 
         {/* ASSIGN VENDOR */}
         <h3 className="mt-10 font-semibold text-lg">Assign Vendor</h3>

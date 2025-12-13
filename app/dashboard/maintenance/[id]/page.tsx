@@ -630,38 +630,42 @@ export default function MaintenanceDetailsPage() {
         )}
 
         {/* HOURS LOG */}
-        <h3 className="mt-10 font-semibold text-lg">Work Hours Log</h3>
+        {/* <h3 className="mt-10 font-semibold text-lg">Work Hours Log</h3> */}
+        {/* HOURS LOG */}
+<h3 className="mt-10 font-semibold text-lg">Work Hours Log</h3>
 
-        <button
-          onClick={() => setShowHoursModal(true)}
-          className="mt-2 mb-4 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-        >
-          Add Hours
-        </button>
+<button
+  onClick={() => setShowHoursModal(true)}
+  className="mt-2 mb-4 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+>
+  Add Hours
+</button>
 
-        {request.hoursLog?.length > 0 ? (
-          <div className="space-y-3">
-            {request.hoursLog.map((entry: any, idx: number) => (
-              <div key={idx} className="bg-gray-50 border p-3 rounded-xl text-sm">
-                <p>
-                  <strong>Hours:</strong> {entry.hours}
-                </p>
-                <p>
-                  <strong>Date:</strong>{" "}
-                  {new Date(entry.date).toLocaleDateString()}
-                </p>
-                {entry.note && (
-                  <p>
-                    <strong>Note:</strong> {entry.note}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500 text-sm">No hours logged yet.</p>
+{Array.isArray(request.hoursLog) && request.hoursLog.length > 0 ? (
+  <div className="space-y-3">
+    {request.hoursLog.map((entry: any, idx: number) => (
+      <div key={idx} className="bg-gray-50 border p-3 rounded-xl text-sm">
+        <p>
+          <strong>Hours:</strong> {entry.hours}
+        </p>
+        <p>
+          <strong>Date:</strong> {new Date(entry.date).toLocaleDateString()}
+        </p>
+        {entry.note && (
+          <p>
+            <strong>Note:</strong> {entry.note}
+          </p>
         )}
+      </div>
+    ))}
+  </div>
+) : (
+  <p className="text-gray-500 text-sm">No hours logged yet.</p>
+)}
 
+
+
+       
         {/* HOURS MODAL */}
         {showHoursModal && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">

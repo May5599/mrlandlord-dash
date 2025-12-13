@@ -4,16 +4,23 @@ import { useParams } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import MaintenanceNav from "../../maintenance/MaintenanceNav";
+import { Id } from "@/convex/_generated/dataModel";
+
 
 export default function VendorDetailsPage() {
   const params = useParams();
   const id = params?.id as string;
 
-  const vendor = useQuery(api.vendors.getVendorById, id ? { id } : undefined);
-  const jobs = useQuery(
-    api.maintenance.getRequestsByVendor,
-    id ? { vendorId: id } : undefined
-  );
+ const vendor = useQuery(
+  api.vendors.getVendorById,
+  id ? { id: id as Id<"vendors"> } : "skip"
+);
+
+const jobs = useQuery(
+  api.maintenance.getRequestsByVendor,
+  id ? { vendorId: id as Id<"vendors"> } : "skip"
+);
+
 
   if (!id) return <p className="p-8">Invalid vendor ID</p>;
   if (!vendor) return <p className="p-8">Loading vendor...</p>;

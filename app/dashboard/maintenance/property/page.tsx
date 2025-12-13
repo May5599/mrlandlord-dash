@@ -53,6 +53,10 @@ export default function PropertyWiseMaintenancePage() {
                     <th className="text-left p-2">Priority</th>
                     <th className="text-left p-2">Status</th>
                     <th className="text-left p-2">Action</th>
+                    <th className="p-2">Category</th>
+<th className="p-2">Severity</th>
+
+                    
                   </tr>
                 </thead>
 
@@ -66,6 +70,9 @@ export default function PropertyWiseMaintenancePage() {
                         <td className="p-2">{unit?.unitNumber ?? "—"}</td>
                         <td className="p-2 capitalize">{req.priority}</td>
                         <td className="p-2 capitalize">{req.status}</td>
+                        <td className="p-2">{req.category}</td>
+<td className="p-2 capitalize">{req.severity}</td>
+
 
                         <td className="p-2">
                           <Link

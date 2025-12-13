@@ -1,56 +1,63 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
 
 export default function TenantLoginPage() {
-  const requestOtp = useMutation(api.tenantsAuth.requestOtp);
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSend = async () => {
-  console.log("Send OTP clicked");
+  const handleLogin = async () => {
+    setError("");
 
-  try {
-    setLoading(true);
-    console.log("Before requestOtp");
+    const res = await fetch("/api/tenant/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-    await requestOtp({ email });
+    const data = await res.json();
 
-    console.log("After requestOtp");
-    window.location.href = `/tenant/login/verify?email=${email}`;
-  } catch (err) {
-    console.log("ERROR:", err);
-    if (err instanceof Error) {
-      alert(err.message);
-    } else {
-      alert("Something went wrong");
+    if (!data.success) {
+      setError(data.message);
+      return;
     }
-  } finally {
-    setLoading(false);
-  }
-};
 
+    // Redirect after successful login
+    window.location.href = "/tenant/dashboard";
+  };
 
   return (
-    <div className="p-8 max-w-md mx-auto">
-      <h1 className="text-xl font-semibold mb-4">Tenant Login</h1>
+    <div className="max-w-md mx-auto p-8">
+      <h1 className="text-2xl font-bold mb-4">Tenant Login</h1>
 
       <input
         className="w-full border p-2 rounded mb-4"
-        placeholder="Enter your email"
+        placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
 
+      <input
+        className="w-full border p-2 rounded mb-4"
+        placeholder="Password"
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+
+      {error && <p className="text-red-600 mb-4">{error}</p>}
+
       <button
-        onClick={handleSend}
-        disabled={!email || loading}
-        className="w-full bg-indigo-600 text-white p-2 rounded disabled:opacity-50"
-      >
-        {loading ? "Sending..." : "Send Login Code"}
-      </button>
+  type="button"          // ← ADD THIS
+  className="w-full bg-blue-600 text-white p-2 rounded"
+  onClick={handleLogin}
+>
+  Login
+</button>
+
     </div>
   );
 }

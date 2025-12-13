@@ -140,6 +140,9 @@ export default function AllMaintenanceRequests() {
               <th className="p-3">Property</th>
               <th className="p-3">Unit</th>
               <th className="p-3">Priority</th>
+              <th className="p-3">Category</th>
+<th className="p-3">Severity</th>
+
               <th className="p-3">Status</th>
               <th className="p-3">Created</th>
               <th className="p-3 text-right">Actions</th>
@@ -160,7 +163,7 @@ export default function AllMaintenanceRequests() {
                   <td className="p-3">{unit?.unitNumber ?? "—"}</td>
 
                   {/* PRIORITY BADGE */}
-                  <td className="p-3">
+                  {/* <td className="p-3">
                     <span
                       className={`px-3 py-1 rounded-full text-xs ${
                         req.priority === "high"
@@ -172,7 +175,26 @@ export default function AllMaintenanceRequests() {
                     >
                       {req.priority}
                     </span>
-                  </td>
+                  </td> */}
+
+                  <td className="p-3 capitalize">{req.category}</td>
+
+<td className="p-3">
+  <span
+    className={`px-3 py-1 rounded-full text-xs ${
+      req.severity === "emergency"
+        ? "bg-red-100 text-red-700"
+        : req.severity === "high"
+        ? "bg-orange-100 text-orange-700"
+        : req.severity === "medium"
+        ? "bg-yellow-100 text-yellow-700"
+        : "bg-green-100 text-green-700"
+    }`}
+  >
+    {req.severity}
+  </span>
+</td>
+
 
                   {/* STATUS BADGE */}
                   <td className="p-3">

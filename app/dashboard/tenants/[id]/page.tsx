@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import { useQuery, useMutation } from "convex/react";
@@ -5,18 +7,41 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import TenantsNav from "../TenantsNav";
 import { useParams, useRouter } from "next/navigation";
+import { useSessionToken } from "@/hooks/useSessionToken";
 
 export default function TenantDetailPage() {
   const router = useRouter();
-  const { id } = useParams(); // tenant ID from URL
+  const { id } = useParams();
 
   const tenantId = id as Id<"tenants">;
 
-  // Fetch tenant + properties + units
-  const tenant = useQuery(api.tenants.getTenantById, { id: tenantId });
-  const properties = useQuery(api.properties.getAllProperties) ?? [];
-  const units = useQuery(api.units.getAllUnits) ?? [];
+  const token = useSessionToken();
+  const isReady = !!token;
 
+  /* ----------------------------------------------------------
+     QUERIES
+  ----------------------------------------------------------- */
+  const tenant =
+    useQuery(
+      api.tenants.getTenantById,
+      isReady ? { token, tenantId } : "skip"
+    ) ?? null;
+
+  const properties =
+    useQuery(
+      api.properties.getAllProperties,
+      isReady ? { token } : "skip"
+    ) ?? [];
+
+  const units =
+    useQuery(
+      api.units.getAllUnits,
+      isReady ? { token } : "skip"
+    ) ?? [];
+
+  /* ----------------------------------------------------------
+     MUTATIONS
+  ----------------------------------------------------------- */
   const moveOutTenant = useMutation(api.tenants.moveOutTenant);
   const deleteTenant = useMutation(api.tenants.deleteTenant);
 
@@ -31,9 +56,10 @@ export default function TenantDetailPage() {
      MOVE OUT HANDLER
   ----------------------------------------------------------- */
   const handleMoveOut = async () => {
-    if (!confirm("Mark tenant as moved out?")) return;
+    if (!token || !confirm("Mark tenant as moved out?")) return;
 
     await moveOutTenant({
+      token,
       tenantId: tenant._id,
       unitId: tenant.unitId,
     });
@@ -45,8 +71,13 @@ export default function TenantDetailPage() {
      DELETE HANDLER
   ----------------------------------------------------------- */
   const handleDelete = async () => {
-    if (!confirm("Delete this tenant?")) return;
-    await deleteTenant({ id: tenant._id });
+    if (!token || !confirm("Delete this tenant?")) return;
+
+    await deleteTenant({
+      token,
+      tenantId: tenant._id,
+    });
+
     router.push("/dashboard/tenants/all");
   };
 
@@ -56,27 +87,28 @@ export default function TenantDetailPage() {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-semibold mb-1">Tenant Profile</h1>
-      <p className="text-gray-500 mb-6">Full tenant information and history</p>
+      <p className="text-gray-500 mb-6">
+        Full tenant information and history
+      </p>
 
       <TenantsNav />
 
       <div className="grid grid-cols-3 gap-6 mt-6">
-        
-        {/* LEFT SIDE: BASIC INFO */}
-        <div className="col-span-1 bg-white p-6 border rounded-xl shadow-sm">
+        {/* LEFT: BASIC INFO */}
+        <div className="bg-white p-6 border rounded-xl shadow-sm">
           <h2 className="text-lg font-semibold mb-4">Basic Details</h2>
 
           <p><strong>Name:</strong> {tenant.name}</p>
           <p><strong>Phone:</strong> {tenant.phone}</p>
           <p><strong>Email:</strong> {tenant.email}</p>
-          {tenant.dob && <p><strong>DOB:</strong> {tenant.dob}</p>}
+
           <p className="mt-2">
             <strong>Status:</strong>{" "}
             <span
               className={`px-3 py-1 text-xs rounded-full ${
                 tenant.status === "active"
                   ? "bg-green-100 text-green-700"
-                  : tenant.status === "pending-movein"
+                  : tenant.status === "pending"
                   ? "bg-yellow-100 text-yellow-700"
                   : "bg-gray-300 text-gray-700"
               }`}
@@ -85,12 +117,14 @@ export default function TenantDetailPage() {
             </span>
           </p>
 
-          <button
-            onClick={handleMoveOut}
-            className="mt-4 w-full bg-orange-600 text-white py-2 rounded"
-          >
-            Mark as Move-Out
-          </button>
+          {tenant.status === "active" && (
+            <button
+              onClick={handleMoveOut}
+              className="mt-4 w-full bg-orange-600 text-white py-2 rounded"
+            >
+              Mark as Move-Out
+            </button>
+          )}
 
           <button
             onClick={handleDelete}
@@ -101,7 +135,7 @@ export default function TenantDetailPage() {
         </div>
 
         {/* MIDDLE: LEASE INFO */}
-        <div className="col-span-1 bg-white p-6 border rounded-xl shadow-sm">
+        <div className="bg-white p-6 border rounded-xl shadow-sm">
           <h2 className="text-lg font-semibold mb-4">Lease Information</h2>
 
           <p><strong>Lease Start:</strong> {tenant.leaseStart}</p>
@@ -116,15 +150,17 @@ export default function TenantDetailPage() {
           </div>
         </div>
 
-        {/* RIGHT SIDE: NOTES & DOCUMENTS */}
-        <div className="col-span-1 bg-white p-6 border rounded-xl shadow-sm">
+        {/* RIGHT: NOTES & DOCUMENTS */}
+        <div className="bg-white p-6 border rounded-xl shadow-sm">
           <h2 className="text-lg font-semibold mb-4">Notes</h2>
 
-          {tenant.notes && tenant.notes.length > 0 ? (
+          {tenant.notes?.length ? (
             tenant.notes.map((n, i) => (
               <div key={i} className="mb-3 p-3 border rounded bg-gray-50">
                 <p className="text-sm">{n.message}</p>
-                <p className="text-xs text-gray-500 mt-1">{n.createdAt}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {n.createdAt}
+                </p>
               </div>
             ))
           ) : (
@@ -140,20 +176,31 @@ export default function TenantDetailPage() {
             Add Note
           </button>
 
-          <h2 className="text-lg font-semibold mt-8 mb-4">Documents</h2>
+          <h2 className="text-lg font-semibold mt-8 mb-4">
+            Documents
+          </h2>
 
-          {tenant.documents && tenant.documents.length > 0 ? (
+          {tenant.documents?.length ? (
             tenant.documents.map((d, i) => (
               <div key={i} className="mb-3 p-3 border rounded bg-gray-50">
                 <p className="font-medium">{d.type}</p>
-                <a className="text-blue-600 text-sm" href={d.url} target="_blank">
+                <a
+                  className="text-blue-600 text-sm"
+                  href={d.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   View Document
                 </a>
-                <p className="text-xs text-gray-500 mt-1">{d.uploadedAt}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {d.uploadedAt}
+                </p>
               </div>
             ))
           ) : (
-            <p className="text-gray-400 text-sm">No documents uploaded</p>
+            <p className="text-gray-400 text-sm">
+              No documents uploaded
+            </p>
           )}
 
           <button

@@ -8,12 +8,20 @@
  * @module
  */
 
+import type * as _lib_auth from "../_lib/auth.js";
+import type * as _lib_getCompanyFromToken from "../_lib/getCompanyFromToken.js";
+import type * as _lib_getTenantFromToken from "../_lib/getTenantFromToken.js";
+import type * as companyAdmins from "../companyAdmins.js";
 import type * as contacts from "../contacts.js";
 import type * as createDefaultCompany from "../createDefaultCompany.js";
+import type * as dashboard from "../dashboard.js";
 import type * as maintenance from "../maintenance.js";
 import type * as notifications from "../notifications.js";
+import type * as platformAdmins from "../platformAdmins.js";
 import type * as properties from "../properties.js";
 import type * as sendEmail from "../sendEmail.js";
+import type * as superAdmins from "../superAdmins.js";
+import type * as tenantMaintenance from "../tenantMaintenance.js";
 import type * as tenantProfiles from "../tenantProfiles.js";
 import type * as tenantSessions from "../tenantSessions.js";
 import type * as tenants from "../tenants.js";
@@ -29,12 +37,20 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "_lib/auth": typeof _lib_auth;
+  "_lib/getCompanyFromToken": typeof _lib_getCompanyFromToken;
+  "_lib/getTenantFromToken": typeof _lib_getTenantFromToken;
+  companyAdmins: typeof companyAdmins;
   contacts: typeof contacts;
   createDefaultCompany: typeof createDefaultCompany;
+  dashboard: typeof dashboard;
   maintenance: typeof maintenance;
   notifications: typeof notifications;
+  platformAdmins: typeof platformAdmins;
   properties: typeof properties;
   sendEmail: typeof sendEmail;
+  superAdmins: typeof superAdmins;
+  tenantMaintenance: typeof tenantMaintenance;
   tenantProfiles: typeof tenantProfiles;
   tenantSessions: typeof tenantSessions;
   tenants: typeof tenants;

@@ -1,11 +1,16 @@
+
+
+
 // import { mutation, query } from "./_generated/server";
 // import { v } from "convex/values";
+// import { getTenantFromToken } from "./_lib/getTenantFromToken";
 
-// // -----------------------------------------------------
-// // 1. CREATE PROFILE (Tenant's first time onboarding)
-// // -----------------------------------------------------
+// /* -----------------------------------------------------
+//     1. CREATE PROFILE
+// ----------------------------------------------------- */
 // export const createProfile = mutation({
 //   args: {
+//     token: v.string(),
 //     tenantId: v.id("tenants"),
 
 //     firstName: v.optional(v.string()),
@@ -24,7 +29,7 @@
 //         v.object({
 //           fullName: v.string(),
 //           phone: v.optional(v.string()),
-//           relationship: v.optional(v.string())
+//           relationship: v.optional(v.string()),
 //         })
 //       )
 //     ),
@@ -32,7 +37,7 @@
 //     vehicle: v.optional(
 //       v.object({
 //         model: v.optional(v.string()),
-//         plate: v.optional(v.string())
+//         plate: v.optional(v.string()),
 //       })
 //     ),
 
@@ -40,7 +45,7 @@
 //       v.array(
 //         v.object({
 //           type: v.string(),
-//           size: v.string()
+//           size: v.string(),
 //         })
 //       )
 //     ),
@@ -49,32 +54,40 @@
 //       v.object({
 //         name: v.optional(v.string()),
 //         phone: v.optional(v.string()),
-//         relationship: v.optional(v.string())
+//         relationship: v.optional(v.string()),
 //       })
 //     ),
 
 //     notes: v.optional(v.string()),
 //   },
-//   handler: async (ctx, args) => {
-//     const now = Date.now();
 
-//     // Prevent duplicates — one profile per tenant
+//   handler: async (ctx, args) => {
+//     const { tenant, companyId } = await getTenantFromToken(ctx, args.token);
+//     const { token, tenantId, ...profileData } = args;
+
+//     if (tenant._id !== tenantId) {
+//  {
+//       throw new Error("Access denied");
+//     }
+
 //     const existing = await ctx.db
 //       .query("tenantProfiles")
 //       .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
 //       .first();
 
-//     if (existing) {
-//       throw new Error("Profile already exists.");
-//     }
+//     if (existing) throw new Error("Profile already exists");
 
-//     // Insert new profile
-//     const id = await ctx.db.insert("tenantProfiles", {
-//       ...args,
-//       createdAt: now,
-//     });
+   
 
-//     // Update onboarding status to active
+// const id = await ctx.db.insert("tenantProfiles", {
+//   tenantId,
+//   ...profileData,
+//   companyId,
+//   createdAt: Date.now(),
+// });
+
+
+
 //     await ctx.db.patch(args.tenantId, {
 //       onboardingStatus: "active",
 //     });
@@ -83,11 +96,12 @@
 //   },
 // });
 
-// // -----------------------------------------------------
-// // 2. UPDATE PROFILE (Tenant edits info later)
-// // -----------------------------------------------------
+// /* -----------------------------------------------------
+//     2. UPDATE PROFILE
+// ----------------------------------------------------- */
 // export const updateProfile = mutation({
 //   args: {
+//     token: v.string(),
 //     profileId: v.id("tenantProfiles"),
 //     data: v.object({
 //       firstName: v.optional(v.string()),
@@ -95,58 +109,82 @@
 //       lastName: v.optional(v.string()),
 //       dob: v.optional(v.string()),
 //       phone: v.optional(v.string()),
+
 //       employmentStatus: v.optional(v.string()),
 //       employerName: v.optional(v.string()),
 //       jobTitle: v.optional(v.string()),
 //       monthlyIncome: v.optional(v.number()),
+
 //       occupants: v.optional(
 //         v.array(
 //           v.object({
 //             fullName: v.string(),
 //             phone: v.optional(v.string()),
-//             relationship: v.optional(v.string())
+//             relationship: v.optional(v.string()),
 //           })
 //         )
 //       ),
+
 //       vehicle: v.optional(
 //         v.object({
 //           model: v.optional(v.string()),
-//           plate: v.optional(v.string())
+//           plate: v.optional(v.string()),
 //         })
 //       ),
+
 //       pets: v.optional(
 //         v.array(
 //           v.object({
 //             type: v.string(),
-//             size: v.string()
+//             size: v.string(),
 //           })
 //         )
 //       ),
+
 //       emergencyContact: v.optional(
 //         v.object({
 //           name: v.optional(v.string()),
 //           phone: v.optional(v.string()),
-//           relationship: v.optional(v.string())
+//           relationship: v.optional(v.string()),
 //         })
 //       ),
+
 //       notes: v.optional(v.string()),
 //     }),
 //   },
-//   handler: async (ctx, args) => {
-//     await ctx.db.patch(args.profileId, args.data);
+
+//   handler: async (ctx, { token, profileId, data }) => {
+//     const { tenant, companyId } = await getTenantFromToken(ctx, token);
+
+//     const profile = await ctx.db.get(profileId);
+//     if (!profile || profile.companyId !== companyId) {
+//       throw new Error("Access denied");
+//     }
+
+//     await ctx.db.patch(profileId, data);
 //     return { success: true };
 //   },
 // });
 
-// // -----------------------------------------------------
-// // 3. GET PROFILE (Tenant + Manager both use this)
-// // -----------------------------------------------------
+// /* -----------------------------------------------------
+//     3. GET PROFILE
+// ----------------------------------------------------- */
 // export const getProfile = query({
-//   args: { tenantId: v.id("tenants") },
-//   handler: async (ctx, args) => {
-//     return await ctx.db
+//   args: {
+//     token: v.string(),
+//     tenantId: v.id("tenants"),
+//   },
+
+//   handler: async (ctx, { token, tenantId }) => {
+//     const { tenant, companyId } = await getTenantFromToken(ctx, token);
+
+//     if (tenant._id !== tenantId) {
+//       throw new Error("Access denied");
+//     }
+
+//     return ctx.db
 //       .query("tenantProfiles")
-//       .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
+//       .withIndex("by_tenant", (q) => q.eq("tenantId", tenantId))
 //       .first();
 //   },
 // });
@@ -154,30 +192,14 @@
 
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-
-/* -----------------------------------------------------
-    Helper: get companyId from authenticated manager
------------------------------------------------------ */
-// async function getCompanyId(ctx: any) {
-//   const identity = await ctx.auth.getUserIdentity();
-//   if (!identity) throw new Error("Unauthorized");
-//   return identity.subject; // company identifier
-// }
-
-async function getCompanyId(ctx: any) {
-  // TEMPORARY DEV MODE: always use your known company
-  return "k97fye4pz7v4d1tey4bp6dsvj17x4k9v";
-}
-
-
-
-
+import { getTenantFromToken } from "./_lib/getTenantFromToken";
 
 /* -----------------------------------------------------
     1. CREATE PROFILE
 ----------------------------------------------------- */
 export const createProfile = mutation({
   args: {
+    token: v.string(),
     tenantId: v.id("tenants"),
 
     firstName: v.optional(v.string()),
@@ -229,32 +251,28 @@ export const createProfile = mutation({
   },
 
   handler: async (ctx, args) => {
-    const companyId = await getCompanyId(ctx);
-    const now = Date.now();
+    const { tenant, companyId } = await getTenantFromToken(ctx, args.token);
+    const { tenantId, token, ...profileData } = args;
 
-    // Validate tenant belongs to same company
-    const tenant = await ctx.db.get(args.tenantId);
-    if (!tenant || tenant.companyId !== companyId) {
-      throw new Error("Access denied. Tenant belongs to another company.");
+    if (tenant._id !== tenantId) {
+      throw new Error("Access denied");
     }
 
-    // Prevent duplicate profiles
     const existing = await ctx.db
       .query("tenantProfiles")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
+      .withIndex("by_tenant", (q) => q.eq("tenantId", tenantId))
       .first();
 
     if (existing) throw new Error("Profile already exists");
 
-    // Create profile
     const id = await ctx.db.insert("tenantProfiles", {
-      ...args,
-      companyId,     // 🔥 Important for isolation
-      createdAt: now,
+      tenantId,
+      ...profileData,
+      companyId,
+      createdAt: Date.now(),
     });
 
-    // Mark tenant as active
-    await ctx.db.patch(args.tenantId, {
+    await ctx.db.patch(tenantId, {
       onboardingStatus: "active",
     });
 
@@ -267,6 +285,7 @@ export const createProfile = mutation({
 ----------------------------------------------------- */
 export const updateProfile = mutation({
   args: {
+    token: v.string(),
     profileId: v.id("tenantProfiles"),
     data: v.object({
       firstName: v.optional(v.string()),
@@ -318,12 +337,12 @@ export const updateProfile = mutation({
     }),
   },
 
-  handler: async (ctx, { profileId, data }) => {
-    const companyId = await getCompanyId(ctx);
+  handler: async (ctx, { token, profileId, data }) => {
+    const { tenant, companyId } = await getTenantFromToken(ctx, token);
 
     const profile = await ctx.db.get(profileId);
     if (!profile || profile.companyId !== companyId) {
-      throw new Error("Access denied.");
+      throw new Error("Access denied");
     }
 
     await ctx.db.patch(profileId, data);
@@ -332,20 +351,22 @@ export const updateProfile = mutation({
 });
 
 /* -----------------------------------------------------
-    3. GET PROFILE (Tenant + Manager)
+    3. GET PROFILE
 ----------------------------------------------------- */
 export const getProfile = query({
-  args: { tenantId: v.id("tenants") },
+  args: {
+    token: v.string(),
+    tenantId: v.id("tenants"),
+  },
 
-  handler: async (ctx, { tenantId }) => {
-    const companyId = await getCompanyId(ctx);
+  handler: async (ctx, { token, tenantId }) => {
+    const { tenant } = await getTenantFromToken(ctx, token);
 
-    const tenant = await ctx.db.get(tenantId);
-    if (!tenant || tenant.companyId !== companyId) {
-      throw new Error("Access denied.");
+    if (tenant._id !== tenantId) {
+      throw new Error("Access denied");
     }
 
-    return await ctx.db
+    return ctx.db
       .query("tenantProfiles")
       .withIndex("by_tenant", (q) => q.eq("tenantId", tenantId))
       .first();

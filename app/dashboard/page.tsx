@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import {
@@ -11,122 +13,86 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
   BarChart,
   Bar,
+  Legend,
 } from "recharts";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
-const COLORS = ["#6366f1", "#a5b4fc", "#fbbf24", "#10b981", "#ef4444"];
-
-const revenueData = [
-  { month: "Jul", revenue: 9200 },
-  { month: "Aug", revenue: 10800 },
-  { month: "Sep", revenue: 12100 },
-  { month: "Oct", revenue: 13850 },
-  { month: "Nov", revenue: 14920 },
-];
-
-const occupancyData = [
-  { name: "Occupied Units", value: 78 },
-  { name: "Vacant Units", value: 14 },
-  { name: "Under Maintenance", value: 8 },
-];
-
-const leadSourceData = [
-  { name: "Website", leads: 156 },
-  { name: "Google Ads", leads: 103 },
-  { name: "Referral", leads: 64 },
-  { name: "Social Media", leads: 72 },
-  { name: "Offline", leads: 42 },
-];
-
-const trafficData = [
-  { date: "Oct 10", website: 220, ads: 180 },
-  { date: "Oct 15", website: 290, ads: 210 },
-  { date: "Oct 20", website: 350, ads: 250 },
-  { date: "Oct 25", website: 410, ads: 290 },
-  { date: "Nov 1", website: 470, ads: 330 },
-  { date: "Nov 5", website: 520, ads: 360 },
-];
-
-const websiteStats = [
-  { title: "Website Leads", value: 48, unit: "Leads" },
-  { title: "Advertising Leads", value: 223, unit: "Leads" },
-  { title: "Total Leads", value: 271, unit: "Leads" },
-  { title: "New Users", value: 1489, unit: "Users" },
-  { title: "Website Sessions", value: 2324, unit: "Sessions" },
-  { title: "Pageviews", value: 8610, unit: "Views" },
-];
+const COLORS = ["#6366f1", "#10b981", "#fbbf24", "#ef4444"];
 
 export default function DashboardPage() {
+  const token =
+    typeof document !== "undefined"
+      ? document.cookie
+          .split("; ")
+          .find(c => c.startsWith("company_admin_token="))
+          ?.split("=")[1]
+      : undefined;
+
+  const data = useQuery(
+    api.dashboard.getCompanyDashboardStats,
+    token ? { token } : "skip"
+  );
+
+  if (!data) {
+    return <div>Loading dashboard...</div>;
+  }
+
+  const { summary, charts } = data;
+
   return (
     <div className="space-y-10">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-semibold mb-2">Welcome back, Mayank 👋</h1>
+        <h1 className="text-3xl font-semibold mb-2">
+          Company Overview
+        </h1>
         <p className="text-gray-600">
-          Monitor your property, lead, and website performance — all updated dynamically.
+          Live operational insights for your properties
         </p>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         {[
-          { title: "Total Properties", value: "11", unit: "Units" },
-          { title: "Leads This Month", value: "298", unit: "Leads" },
-          { title: "Avg Listing Score", value: "61.18", unit: "%" },
-          { title: "Total Revenue", value: "$14,920", unit: "CAD" },
-        ].map((card) => (
+          { title: "Properties", value: summary.totalProperties },
+          { title: "Units", value: summary.totalUnits },
+          { title: "Occupied", value: summary.occupiedUnits },
+          { title: "Vacant", value: summary.vacantUnits },
+          { title: "Maintenance Units", value: summary.maintenanceUnits },
+          { title: "Open Requests", value: summary.openMaintenance },
+        ].map(card => (
           <div
             key={card.title}
-            className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-all"
+            className="bg-white p-5 rounded-xl border shadow-sm"
           >
-            <h3 className="text-sm text-gray-500">{card.title}</h3>
-            <div className="flex items-end justify-between mt-2">
-              <p className="text-3xl font-semibold text-indigo-600">
-                {card.value}
-              </p>
-              <span className="text-xs text-gray-400 mb-1">{card.unit}</span>
-            </div>
+            <p className="text-sm text-gray-500">{card.title}</p>
+            <p className="text-3xl font-semibold text-indigo-600 mt-2">
+              {card.value}
+            </p>
           </div>
         ))}
       </div>
 
-      {/* Website Analytics Overview */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Website Analytics (Last 30 Days)</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          {websiteStats.map((item) => (
-            <div
-              key={item.title}
-              className="bg-white p-4 rounded-lg border shadow-sm hover:shadow-md transition-all"
-            >
-              <h4 className="text-sm text-gray-500">{item.title}</h4>
-              <div className="flex items-end justify-between mt-2">
-                <p className="text-2xl font-semibold text-indigo-600">
-                  {item.value.toLocaleString()}
-                </p>
-                <span className="text-xs text-gray-400 mb-1">{item.unit}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Charts Section */}
+      {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Line Chart */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <h2 className="text-lg font-semibold mb-4">Monthly Revenue Trend (CAD)</h2>
+        {/* Monthly Maintenance Trend */}
+        <div className="bg-white p-6 rounded-xl border">
+          <h2 className="text-lg font-semibold mb-4">
+            Maintenance Requests (This Year)
+          </h2>
+
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={revenueData}>
+            <LineChart data={charts.monthlyMaintenance}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip formatter={(value) => `$${value.toLocaleString()} CAD`} />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
               <Line
                 type="monotone"
-                dataKey="revenue"
+                dataKey="count"
                 stroke="#6366f1"
                 strokeWidth={3}
               />
@@ -134,72 +100,65 @@ export default function DashboardPage() {
           </ResponsiveContainer>
         </div>
 
-        {/* Occupancy Pie Chart */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <h2 className="text-lg font-semibold mb-4">Occupancy Overview (Units)</h2>
+        {/* Occupancy Overview */}
+        <div className="bg-white p-6 rounded-xl border">
+          <h2 className="text-lg font-semibold mb-4">
+            Occupancy Overview
+          </h2>
+
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={occupancyData}
+                data={charts.occupancy}
                 dataKey="value"
                 nameKey="name"
-                cx="50%"
-                cy="50%"
                 outerRadius={100}
                 label
               >
-                {occupancyData.map((_, i) => (
+                {charts.occupancy.map((_, i) => (
                   <Cell key={i} fill={COLORS[i]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(v) => `${v} Units`} />
+              <Tooltip />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Additional Charts */}
+      {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Lead Source Bar Chart */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <h2 className="text-lg font-semibold mb-4">Lead Sources (Last 30 Days)</h2>
+        {/* Maintenance by Status */}
+        <div className="bg-white p-6 rounded-xl border">
+          <h2 className="text-lg font-semibold mb-4">
+            Maintenance by Status
+          </h2>
+
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={leadSourceData}>
+            <BarChart data={charts.maintenanceByStatus}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip formatter={(v) => `${v} Leads`} />
-              <Bar dataKey="leads" fill="#10b981" />
+              <XAxis dataKey="status" />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
+              <Bar dataKey="count" fill="#10b981" />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Website vs Ads Traffic */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <h2 className="text-lg font-semibold mb-4">Traffic Comparison (Last 30 Days)</h2>
+        {/* Maintenance by Category */}
+        <div className="bg-white p-6 rounded-xl border">
+          <h2 className="text-lg font-semibold mb-4">
+            Maintenance by Category
+          </h2>
+
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={trafficData}>
+            <BarChart data={charts.maintenanceByCategory}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip formatter={(v) => `${v} Visits`} />
-              <Line
-                type="monotone"
-                dataKey="website"
-                stroke="#6366f1"
-                strokeWidth={2}
-                name="Website Visits"
-              />
-              <Line
-                type="monotone"
-                dataKey="ads"
-                stroke="#fbbf24"
-                strokeWidth={2}
-                name="Ad Clicks"
-              />
-              <Legend />
-            </LineChart>
+              <XAxis dataKey="category" />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
+              <Bar dataKey="count" fill="#6366f1" />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>

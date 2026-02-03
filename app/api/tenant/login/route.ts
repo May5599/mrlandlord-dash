@@ -83,8 +83,10 @@ const token = crypto.randomUUID();
 // ⭐ IMPORTANT: save the session in Convex
 await fetchMutation(api.tenantSessions.createSession, {
   tenantId: tenant._id,
+  companyId: tenant.companyId,
   token,
 });
+
 
 const response = NextResponse.json({
   success: true,

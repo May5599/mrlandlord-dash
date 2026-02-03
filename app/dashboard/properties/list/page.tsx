@@ -1,3 +1,4 @@
+
 "use client";
 
 import { api } from "@/convex/_generated/api";
@@ -5,15 +6,33 @@ import { Doc, Id } from "@/convex/_generated/dataModel";
 import { useQuery, useMutation } from "convex/react";
 import { useState } from "react";
 import PropertiesNav from "../PropertiesNav";
+import { useSessionToken } from "@/hooks/useSessionToken";
 
 export default function PropertyListPage() {
-  const properties = useQuery(api.properties.getAllProperties) ?? [];
-  const units = useQuery(api.units.getAllUnits) ?? [];
+const token = useSessionToken();
+const isLoadingSession = token === null;
+const isReady = Boolean(token);
 
+
+  // -------------------- Queries --------------------
+  const properties =
+    useQuery(
+      api.properties.getAllProperties,
+      isReady ? { token: token! } : "skip"
+    ) ?? [];
+
+  const units =
+    useQuery(
+      api.units.getAllUnits,
+      isReady ? { token: token! } : "skip"
+    ) ?? [];
+
+  // -------------------- Mutations --------------------
   const createProperty = useMutation(api.properties.createProperty);
   const updateProperty = useMutation(api.properties.updateProperty);
   const deleteProperty = useMutation(api.properties.deleteProperty);
 
+  // -------------------- Filters --------------------
   const [search, setSearch] = useState("");
   const [cityFilter, setCityFilter] = useState("all");
 
@@ -30,7 +49,6 @@ export default function PropertyListPage() {
   const allCities = [...new Set(properties.map((p) => p.city))];
 
   // -------------------- Add Modal --------------------
-
   const [showAdd, setShowAdd] = useState(false);
   const [newProp, setNewProp] = useState({
     name: "",
@@ -41,12 +59,11 @@ export default function PropertyListPage() {
   });
 
   const handleAdd = async () => {
+    if (!token) return;
+
     await createProperty({
-      name: newProp.name,
-      address: newProp.address,
-      city: newProp.city,
-      postalCode: newProp.postalCode,
-      country: newProp.country,
+      token,
+      ...newProp,
     });
 
     setNewProp({
@@ -56,37 +73,33 @@ export default function PropertyListPage() {
       postalCode: "",
       country: "Canada",
     });
+
     setShowAdd(false);
   };
 
   // -------------------- Edit Modal --------------------
-
   const [showEdit, setShowEdit] = useState(false);
-  const [editProp, setEditProp] = useState<
-  (PropertyFormData & { _id: Id<"properties"> }) | null
->(null);
+  const [editProp, setEditProp] =
+    useState<(PropertyFormData & { _id: Id<"properties"> }) | null>(null);
 
-
- const openEdit = (p: Doc<"properties">) => {
-  setEditProp({
-    _id: p._id,
-    name: p.name,
-    address: p.address,
-    city: p.city,
-    postalCode: p.postalCode,
-    country: p.country,
-  });
-
-  setShowEdit(true);
-};
-
-
+  const openEdit = (p: Doc<"properties">) => {
+    setEditProp({
+      _id: p._id,
+      name: p.name,
+      address: p.address,
+      city: p.city,
+      postalCode: p.postalCode,
+      country: p.country,
+    });
+    setShowEdit(true);
+  };
 
   const handleEdit = async () => {
-    if (!editProp) return;
+    if (!token || !editProp) return;
 
     await updateProperty({
-      id: editProp._id,
+      token,
+      propertyId: editProp._id,
       updates: {
         name: editProp.name,
         address: editProp.address,
@@ -100,14 +113,17 @@ export default function PropertyListPage() {
   };
 
   // -------------------- Delete --------------------
-
-  const handleDelete = async (id: Id<"properties">) => {
+  const handleDelete = async (propertyId: Id<"properties">) => {
+    if (!token) return;
     if (!confirm("Delete this property?")) return;
-    await deleteProperty({ id });
+
+    await deleteProperty({
+      token,
+      propertyId,
+    });
   };
 
   // -------------------- Helpers --------------------
-
   const getUnitSummary = (propertyId: Id<"properties">) => {
     const list = units.filter((u) => u.propertyId === propertyId);
     const occupied = list.filter((u) => u.status === "occupied").length;
@@ -115,10 +131,67 @@ export default function PropertyListPage() {
     return { total: list.length, occupied, vacant };
   };
 
+  const vacantUnitsCount = units.filter(
+    (u) => u.status === "vacant"
+  ).length;
+
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-semibold mb-2">Property List</h1>
-      <p className="text-gray-500 mb-6">View and manage all properties.</p>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Properties
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Manage your company’s property portfolio
+          </p>
+        </div>
+
+        {isLoadingSession && (
+  <p className="text-sm text-gray-400 mt-2">
+    Preparing your session…
+  </p>
+)}
+
+
+        <button
+  onClick={() => setShowAdd(true)}
+  disabled={isLoadingSession}
+  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+    isLoadingSession
+      ? "bg-gray-200 text-gray-400 cursor-wait"
+      : "bg-indigo-600 hover:bg-indigo-700 text-white"
+  }`}
+>
+  {isLoadingSession ? "Loading…" : "+ Add Property"}
+</button>
+
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-white border rounded-xl p-4">
+          <p className="text-sm text-gray-500">Total Properties</p>
+          <p className="text-2xl font-semibold mt-1">
+            {properties.length}
+          </p>
+        </div>
+
+        <div className="bg-white border rounded-xl p-4">
+          <p className="text-sm text-gray-500">Total Units</p>
+          <p className="text-2xl font-semibold mt-1">
+            {units.length}
+          </p>
+        </div>
+
+        <div className="bg-white border rounded-xl p-4">
+          <p className="text-sm text-gray-500">Vacant Units</p>
+          <p className="text-2xl font-semibold mt-1 text-blue-600">
+            {vacantUnitsCount}
+          </p>
+        </div>
+      </div>
 
       <PropertiesNav />
 
@@ -143,13 +216,6 @@ export default function PropertyListPage() {
             </option>
           ))}
         </select>
-
-        <button
-          onClick={() => setShowAdd(true)}
-          className="ml-auto bg-indigo-600 text-white px-4 py-2 rounded"
-        >
-          + Add Property
-        </button>
       </div>
 
       {/* Table */}
@@ -172,7 +238,7 @@ export default function PropertyListPage() {
               const s = getUnitSummary(p._id);
               return (
                 <tr key={p._id} className="border-b hover:bg-gray-50">
-                  <td className="p-3">{p.name}</td>
+                  <td className="p-3 font-medium">{p.name}</td>
                   <td className="p-3">{p.address}</td>
                   <td className="p-3">{p.city}</td>
                   <td className="p-3">{s.total}</td>
@@ -183,13 +249,14 @@ export default function PropertyListPage() {
                     <button
                       className="text-indigo-600 mr-4"
                       onClick={() =>
-                        (window.location.href = `/dashboard/properties/all-units?property=${p._id}`)
+                        (window.location.href =
+                          `/dashboard/properties/all-units?property=${p._id}`)
                       }
                     >
                       View Units
                     </button>
 
-                      <button
+                    <button
                       className="text-purple-600 mr-4"
                       onClick={() => openEdit(p)}
                     >
@@ -218,14 +285,16 @@ export default function PropertyListPage() {
         </table>
       </div>
 
-      {/* Add Property Modal */}
       {showAdd && (
         <Modal title="Add Property" onClose={() => setShowAdd(false)}>
-          <PropertyForm data={newProp} setData={setNewProp} onSubmit={handleAdd} />
+          <PropertyForm
+            data={newProp}
+            setData={setNewProp}
+            onSubmit={handleAdd}
+          />
         </Modal>
       )}
 
-      {/* Edit Property Modal */}
       {showEdit && editProp && (
         <Modal title="Edit Property" onClose={() => setShowEdit(false)}>
           <PropertyForm
@@ -239,7 +308,15 @@ export default function PropertyListPage() {
   );
 }
 
-/* ---------------- MODAL ---------------- */
+/* ---------------- Modal + Form ---------------- */
+
+type PropertyFormData = {
+  name: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+};
 
 function Modal({
   title,
@@ -263,16 +340,6 @@ function Modal({
   );
 }
 
-/* ---------------- FORM ---------------- */
-
-type PropertyFormData = {
-  name: string;
-  address: string;
-  city: string;
-  postalCode: string;
-  country: string;
-};
-
 function PropertyForm<T extends PropertyFormData>({
   data,
   setData,
@@ -282,7 +349,11 @@ function PropertyForm<T extends PropertyFormData>({
   setData: (v: T) => void;
   onSubmit: () => void;
 }) {
-
+  const isFormValid =
+    data.name.trim().length > 0 &&
+    data.address.trim().length > 0 &&
+    data.city.trim().length > 0 &&
+    data.postalCode.trim().length > 0;
 
   return (
     <>
@@ -317,7 +388,13 @@ function PropertyForm<T extends PropertyFormData>({
       />
 
       <button
-        className="w-full bg-indigo-600 text-white p-2 rounded mt-2"
+        type="button"
+        disabled={!isFormValid}
+        className={`w-full p-2 rounded mt-2 ${
+          isFormValid
+            ? "bg-indigo-600 text-white"
+            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+        }`}
         onClick={onSubmit}
       >
         Save
@@ -325,3 +402,4 @@ function PropertyForm<T extends PropertyFormData>({
     </>
   );
 }
+

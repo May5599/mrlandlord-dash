@@ -23,14 +23,14 @@ export default function Home() {
 
         <div className="flex flex-col sm:flex-row gap-4">
           <Link
-            href="/dashboard"
+            href="/login"
             className="px-6 py-3 rounded-full bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors"
           >
             Property Manager Dashboard
           </Link>
 
           <Link
-            href="/tenant"
+            href="/tenant/login"
             className="px-6 py-3 rounded-full border border-indigo-200 text-indigo-700 font-medium hover:bg-indigo-50 transition-colors"
           >
             Tenant Portal

@@ -5,41 +5,70 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import MaintenanceNav from "../../maintenance/MaintenanceNav";
 import { Id } from "@/convex/_generated/dataModel";
+import { useSessionToken } from "@/hooks/useSessionToken";
 
-
+/* ----------------------------------------------------------
+   PAGE
+----------------------------------------------------------- */
 export default function VendorDetailsPage() {
   const params = useParams();
   const id = params?.id as string;
 
- const vendor = useQuery(
-  api.vendors.getVendorById,
-  id ? { id: id as Id<"vendors"> } : "skip"
-);
+  /* ----------------------------------------------------------
+     AUTH (SESSION TOKEN)
+  ----------------------------------------------------------- */
+  const token = useSessionToken();
+  const isReady = !!token && !!id;
 
-const jobs = useQuery(
-  api.maintenance.getRequestsByVendor,
-  id ? { vendorId: id as Id<"vendors"> } : "skip"
-);
+  /* ----------------------------------------------------------
+     QUERIES (COMPANY SCOPED)
+  ----------------------------------------------------------- */
+  const vendor =
+    useQuery(
+      api.vendors.getVendorById,
+      isReady
+        ? { token, id: id as Id<"vendors"> }
+        : "skip"
+    ) ?? null;
 
+  const jobs =
+    useQuery(
+      api.maintenance.getRequestsByVendor,
+      isReady
+        ? { token, vendorId: id as Id<"vendors"> }
+        : "skip"
+    ) ?? [];
 
-  if (!id) return <p className="p-8">Invalid vendor ID</p>;
-  if (!vendor) return <p className="p-8">Loading vendor...</p>;
+  if (!id) {
+    return <p className="p-8">Invalid vendor ID</p>;
+  }
 
-  const totalHours = jobs?.reduce((sum, job) => {
-    return (
-      sum +
-      (job.hoursLog?.reduce((s: number, h: any) => s + h.hours, 0) ?? 0)
-    );
+  if (!isReady || !vendor) {
+    return <p className="p-8">Loading vendor...</p>;
+  }
+
+  const totalHours = jobs.reduce((sum, job) => {
+    const hours =
+      job.hoursLog?.reduce(
+        (s: number, h: { hours: number }) => s + h.hours,
+        0
+      ) ?? 0;
+
+    return sum + hours;
   }, 0);
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-semibold mb-2">Vendor Overview</h1>
-      <p className="text-gray-600 mb-6">Performance and activity summary.</p>
+      <h1 className="text-2xl font-semibold mb-2">
+        Vendor Overview
+      </h1>
+      <p className="text-gray-600 mb-6">
+        Performance and activity summary.
+      </p>
 
       <MaintenanceNav />
 
-      {/* Vendor Info */}
+      {/* VENDOR INFO */}
       <div className="bg-white p-6 rounded-xl border shadow-sm mt-6">
         <h2 className="text-xl font-semibold">{vendor.name}</h2>
         <p className="text-gray-700 mt-2">
@@ -48,44 +77,64 @@ const jobs = useQuery(
 
         <div className="grid grid-cols-3 gap-6 mt-6 text-sm">
           <Detail label="Phone" value={vendor.phone} />
-          <Detail label="Email" value={vendor.email || "Not provided"} />
-          <Detail label="Created" value={new Date(vendor.createdAt).toLocaleDateString()} />
+          <Detail
+            label="Email"
+            value={vendor.email || "Not provided"}
+          />
+          <Detail
+            label="Created"
+            value={new Date(vendor.createdAt).toLocaleDateString()}
+          />
         </div>
       </div>
 
-      {/* Work Summary */}
+      {/* WORK SUMMARY */}
       <div className="bg-white p-6 rounded-xl border shadow-sm mt-8">
-        <h3 className="text-lg font-semibold mb-4">Work Summary</h3>
+        <h3 className="text-lg font-semibold mb-4">
+          Work Summary
+        </h3>
 
         <p className="text-sm">
-          <strong>Total Jobs Assigned:</strong> {jobs?.length ?? 0}
+          <strong>Total Jobs Assigned:</strong> {jobs.length}
         </p>
 
         <p className="text-sm mt-2">
-          <strong>Total Hours Logged:</strong> {totalHours ?? 0} hrs
+          <strong>Total Hours Logged:</strong> {totalHours} hrs
         </p>
       </div>
 
-      {/* Job List */}
+      {/* JOB LIST */}
       <div className="bg-white p-6 rounded-xl border shadow-sm mt-8">
-        <h3 className="text-lg font-semibold mb-4">Assigned Jobs</h3>
+        <h3 className="text-lg font-semibold mb-4">
+          Assigned Jobs
+        </h3>
 
-        {jobs?.length === 0 ? (
-          <p className="text-gray-500">No jobs assigned to this vendor yet.</p>
+        {jobs.length === 0 ? (
+          <p className="text-gray-500">
+            No jobs assigned to this vendor yet.
+          </p>
         ) : (
           <div className="space-y-3">
-            {jobs?.map((job) => (
-              <div
-                key={job._id}
-                className="p-3 border rounded-xl bg-gray-50 hover:bg-gray-100 cursor-pointer"
-              >
-                <p className="font-semibold">{job.title}</p>
-                <p className="text-xs text-gray-600">
-                  Status: {job.status}  
-                  | Hours logged: {job.hoursLog?.reduce((s: number, h: any) => s + h.hours, 0) ?? 0}
-                </p>
-              </div>
-            ))}
+            {jobs.map((job) => {
+              const jobHours =
+                job.hoursLog?.reduce(
+                  (s: number, h: { hours: number }) =>
+                    s + h.hours,
+                  0
+                ) ?? 0;
+
+              return (
+                <div
+                  key={job._id}
+                  className="p-3 border rounded-xl bg-gray-50 hover:bg-gray-100"
+                >
+                  <p className="font-semibold">{job.title}</p>
+                  <p className="text-xs text-gray-600">
+                    Status: {job.status} | Hours logged: {jobHours}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -93,7 +142,16 @@ const jobs = useQuery(
   );
 }
 
-function Detail({ label, value }: any) {
+/* ----------------------------------------------------------
+   UI HELPERS
+----------------------------------------------------------- */
+function Detail({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
   return (
     <div className="p-4 border rounded-xl bg-gray-50">
       <p className="text-gray-500 text-xs">{label}</p>

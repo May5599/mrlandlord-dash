@@ -26,7 +26,7 @@ export default function TenantLoginPage() {
     }
 
     // Redirect after successful login
-    window.location.href = "/tenant/dashboard";
+    window.location.href = "/tenant";
   };
 
   return (

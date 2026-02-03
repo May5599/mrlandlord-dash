@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -6,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import TenantsNav from "../TenantsNav";
 import { useRouter } from "next/navigation";
+import { useSessionToken } from "@/hooks/useSessionToken";
 
 /* ----------------------------------------------------------
    TYPES
@@ -31,7 +34,6 @@ type TenantFormData = {
   status: "active" | "vacated" | "pending";
 
   notes: { message: string; createdAt: string }[];
-
   documents: {
     type: string;
     url: string;
@@ -45,13 +47,25 @@ type TenantFormData = {
 export default function NewTenantPage() {
   const router = useRouter();
 
-  const properties = useQuery(api.properties.getAllProperties) ?? [];
-  const units = useQuery(api.units.getAllUnits) ?? [];
+  const token = useSessionToken();
+  const isReady = !!token;
 
-  const createTenant = useMutation(api.tenants.createTenant);
+  const properties =
+    useQuery(
+      api.properties.getAllProperties,
+      isReady ? { token } : "skip"
+    ) ?? [];
+
+  const units =
+    useQuery(
+      api.units.getAllUnits,
+      isReady ? { token } : "skip"
+    ) ?? [];
+
+  // const createTenant = useMutation(api.tenants.createTenant);
 
   /* ----------------------------------------------------------
-     STATE (FIXED)
+     STATE
   ----------------------------------------------------------- */
   const [data, setData] = useState<TenantFormData>({
     name: "",
@@ -86,46 +100,58 @@ export default function NewTenantPage() {
   }, [data.propertyId, units]);
 
   /* ----------------------------------------------------------
-     HANDLE SUBMIT (FIXED)
+     HANDLE SUBMIT
   ----------------------------------------------------------- */
   const handleSubmit = async () => {
-    if (!data.name || !data.phone || !data.email) {
-      alert("Please fill in all required fields.");
-      return;
-    }
+  if (!token) return;
 
-    if (!data.propertyId || !data.unitId) {
-      alert("Please select both property and unit.");
-      return;
-    }
+  if (!data.name || !data.phone || !data.email) {
+    alert("Please fill in all required fields.");
+    return;
+  }
 
-    await createTenant({
-  name: data.name,
-  phone: data.phone,
-  email: data.email,
-  dob: data.dob || undefined,
-  profileImage: data.profileImage || undefined,
+  if (!data.propertyId || !data.unitId) {
+    alert("Please select both property and unit.");
+    return;
+  }
 
-  leaseStart: data.leaseStart,
-  leaseEnd: data.leaseEnd === "" ? undefined : data.leaseEnd,
+  const res = await fetch("/api/admin/create-tenant", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      token,
 
-  rentAmount: Number(data.rentAmount),
-  rentFrequency: data.rentFrequency,
-  deposit: Number(data.deposit),
+      name: data.name,
+      phone: data.phone,
+      email: data.email,
 
-  propertyId: data.propertyId!,
-  unitId: data.unitId!,
+      leaseStart: data.leaseStart,
+      leaseEnd: data.leaseEnd === "" ? undefined : data.leaseEnd,
 
-  status: data.status,
+      rentAmount: Number(data.rentAmount),
+      rentFrequency: data.rentFrequency,
+      deposit: Number(data.deposit),
 
-  notes: data.notes ?? [], // OK because notes is also an array
-  documents: data.documents, // FIXED — no ??
-  
-//   createdAt: new Date().toISOString(),
-});
+      propertyId: data.propertyId,
+      unitId: data.unitId,
 
-    router.push("/dashboard/tenants/all");
-  };
+      status: data.status,
+    }),
+  });
+
+  const result = await res.json();
+
+  if (!result.success) {
+    alert(result.message || "Failed to create tenant");
+    return;
+  }
+
+  // 🔐 Show password ONCE to admin
+  alert(`Tenant temporary password: ${result.tempPassword}`);
+
+  router.push("/dashboard/tenants/all");
+};
+
 
   /* ----------------------------------------------------------
      UI
@@ -140,8 +166,6 @@ export default function NewTenantPage() {
       <TenantsNav />
 
       <div className="bg-white p-6 rounded-xl border shadow-sm mt-6 w-full max-w-xl">
-        
-        {/* FULL NAME */}
         <input
           className="w-full border p-2 rounded mb-4"
           placeholder="Full Name"
@@ -149,7 +173,6 @@ export default function NewTenantPage() {
           onChange={(e) => setData({ ...data, name: e.target.value })}
         />
 
-        {/* PHONE */}
         <input
           className="w-full border p-2 rounded mb-4"
           placeholder="Phone"
@@ -157,7 +180,6 @@ export default function NewTenantPage() {
           onChange={(e) => setData({ ...data, phone: e.target.value })}
         />
 
-        {/* EMAIL */}
         <input
           className="w-full border p-2 rounded mb-4"
           placeholder="Email"
@@ -165,15 +187,13 @@ export default function NewTenantPage() {
           onChange={(e) => setData({ ...data, email: e.target.value })}
         />
 
-        {/* DOB */}
-        <input
+        {/* <input
           type="date"
           className="w-full border p-2 rounded mb-4"
           value={data.dob}
           onChange={(e) => setData({ ...data, dob: e.target.value })}
-        />
+        /> */}
 
-        {/* LEASE START */}
         <input
           type="date"
           className="w-full border p-2 rounded mb-4"
@@ -181,7 +201,6 @@ export default function NewTenantPage() {
           onChange={(e) => setData({ ...data, leaseStart: e.target.value })}
         />
 
-        {/* LEASE END */}
         <input
           type="date"
           className="w-full border p-2 rounded mb-4"
@@ -189,7 +208,6 @@ export default function NewTenantPage() {
           onChange={(e) => setData({ ...data, leaseEnd: e.target.value })}
         />
 
-        {/* RENT */}
         <input
           className="w-full border p-2 rounded mb-4"
           placeholder="Rent Amount"
@@ -197,7 +215,6 @@ export default function NewTenantPage() {
           onChange={(e) => setData({ ...data, rentAmount: e.target.value })}
         />
 
-        {/* DEPOSIT */}
         <input
           className="w-full border p-2 rounded mb-4"
           placeholder="Deposit Amount"
@@ -205,7 +222,6 @@ export default function NewTenantPage() {
           onChange={(e) => setData({ ...data, deposit: e.target.value })}
         />
 
-        {/* PROPERTY */}
         <select
           className="w-full border p-2 rounded mb-4"
           value={data.propertyId}
@@ -225,7 +241,6 @@ export default function NewTenantPage() {
           ))}
         </select>
 
-        {/* UNIT */}
         <select
           className="w-full border p-2 rounded mb-4"
           value={data.unitId}
@@ -245,7 +260,6 @@ export default function NewTenantPage() {
           ))}
         </select>
 
-        {/* STATUS */}
         <select
           className="w-full border p-2 rounded mb-4"
           value={data.status}
@@ -261,7 +275,6 @@ export default function NewTenantPage() {
           <option value="vacated">Vacated</option>
         </select>
 
-        {/* SUBMIT */}
         <button
           onClick={handleSubmit}
           className="w-full bg-indigo-600 text-white p-2 rounded mt-2"

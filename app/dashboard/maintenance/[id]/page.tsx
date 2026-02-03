@@ -79,20 +79,22 @@ const id = params.id;
   /* ----------------------------------------------------------
      LOADING / ERROR
   ----------------------------------------------------------- */
- if (!isReady) {
-  return <p className="p-8">Loading…</p>;
+//  if (!isReady) {
+//   return <p className="p-8">Loading…</p>;
+// }
+
+
+if (!request) {
+  return (
+    <p className="p-8 text-red-500">
+      Maintenance request not found
+    </p>
+  );
 }
 
+const authToken = token as string;
+const maintenance = request; // <-- NON-NULL ALIAS
 
-  if (!request) {
-    return (
-      <p className="p-8 text-red-500">
-        Maintenance request not found
-      </p>
-    );
-  }
-
-  const authToken = token as string;
   if (!isReady) {
   return <p className="p-8">Loading…</p>;
 }
@@ -108,7 +110,7 @@ const id = params.id;
     setUpdating(true);
     await updateRequest({
       token: authToken,
-      id: request._id,
+     id: maintenance._id,
       updates: { status: e.target.value },
     });
     setUpdating(false);
@@ -122,7 +124,7 @@ const id = params.id;
 
     await assignVendor({
       token: authToken,
-      id: request._id,
+      id: maintenance._id,
       vendorId: selectedVendor as Id<"vendors">,
     });
 
@@ -137,7 +139,7 @@ const id = params.id;
 
     await scheduleMaintenance({
       token: authToken,
-      id: request._id,
+      id: maintenance._id,
       scheduledDate,
       scheduledTimeFrom: scheduledFrom,
       scheduledTimeTo: scheduledTo,
@@ -151,7 +153,7 @@ const id = params.id;
 
   await logHours({
     token: authToken,
-    id: request._id,
+     id: maintenance._id,
     vendorId: request.assignedVendorId,
     hours: Number(hours),
     note: hoursNote,
@@ -167,7 +169,7 @@ const id = params.id;
 
     await deleteRequest({
       token: authToken,
-      id: request._id,
+      id: maintenance._id,
     });
 
     router.push("/dashboard/maintenance/all");

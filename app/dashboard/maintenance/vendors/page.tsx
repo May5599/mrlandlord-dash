@@ -40,6 +40,9 @@ export default function VendorsPage() {
   /* ----------------------------------------------------------
      HANDLERS
   ----------------------------------------------------------- */
+
+
+
   const handleAdd = async () => {
     if (!form.name || !form.phone) {
       alert("Name and phone are required");
@@ -47,12 +50,12 @@ export default function VendorsPage() {
     }
 
     await addVendor({
-      token,
-      name: form.name,
-      phone: form.phone,
-      email: form.email || "",
-      specialty: form.specialty || "",
-    });
+  token,
+  name: form.name,
+  phone: form.phone,
+  email: form.email || "",
+  specialty: form.specialty || "",
+});
 
     setForm({ name: "", phone: "", email: "", specialty: "" });
   };
@@ -72,6 +75,8 @@ export default function VendorsPage() {
   if (!isReady) {
     return <p className="p-8">Loading…</p>;
   }
+  const authToken = token as string;
+
 
   /* ----------------------------------------------------------
      UI

@@ -6,19 +6,20 @@ export const sendEmail = mutation({
   args: {
     to: v.string(),
     subject: v.string(),
-    text: v.string(),
+    html: v.string(),
   },
 
-  handler: async (ctx, { to, subject, text }) => {
+  handler: async (ctx, { to, subject, html }) => {
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     await resend.emails.send({
       from: "MrLandlord <onboarding@resend.dev>",
       to,
       subject,
-      text,
+      html,
     });
 
     return { success: true };
   },
 });
+

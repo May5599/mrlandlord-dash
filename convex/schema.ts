@@ -3,13 +3,27 @@ import { v } from "convex/values";
 
 const schema = defineSchema({
 
-
 superAdmins: defineTable({
+  name: v.string(),
   email: v.string(),
   passwordHash: v.string(),
+  role: v.union(
+    v.literal("super_admin"),
+    v.literal("admin")
+  ),
+  isActive: v.boolean(),
+
+  resetToken: v.optional(v.string()),
+  resetTokenExpiresAt: v.optional(v.number()),
+
   createdAt: v.string(),
+  mustChangePassword: v.optional(v.boolean()),
+
 })
-  .index("by_email", ["email"]),
+.index("by_email", ["email"]),
+
+
+
 
 superAdminSessions: defineTable({
   adminId: v.id("superAdmins"),
@@ -24,12 +38,12 @@ superAdminSessions: defineTable({
 // -----------------------------------------------------------
 companyAdmins: defineTable({
   companyId: v.id("companies"),
-
   email: v.string(),
   passwordHash: v.string(),
-
+  mustChangePassword: v.optional(v.boolean()),
   createdAt: v.string(),
 })
+
   .index("by_company", ["companyId"])
   .index("by_email", ["email"]),
 

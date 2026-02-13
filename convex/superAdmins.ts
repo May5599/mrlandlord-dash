@@ -34,7 +34,7 @@ if (admin.isActive === false) {
   throw new Error("Account disabled");
 }
 
-const passwordValid = await comparePassword(
+const passwordValid = comparePassword(
   args.passwordHash,
   admin.passwordHash
 );
@@ -114,7 +114,7 @@ export const createCompanyWithAdmin = mutation({
 
     const generatedPassword = generatePassword();
 
-    const hashedPassword = await hashPassword(
+    const hashedPassword = hashPassword(
       generatedPassword
     );
 
@@ -218,7 +218,7 @@ export const seedSuperAdmin = mutation({
       throw new Error("Super admin already exists");
     }
 
-    const hashedPassword = await hashPassword(
+    const hashedPassword = hashPassword(
       args.passwordHash
     );
 
@@ -301,7 +301,7 @@ export const createSuperAdminUser = mutation({
 
     const generatedPassword = generatePassword();
 
-    const hashedPassword = await hashPassword(
+    const hashedPassword = hashPassword(
       generatedPassword
     );
 
@@ -540,7 +540,7 @@ export const resetPassword = mutation({
       throw new Error("Invalid or expired token");
     }
 
-    const hashedPassword = await hashPassword(
+    const hashedPassword = hashPassword(
       args.newPassword
     );
 

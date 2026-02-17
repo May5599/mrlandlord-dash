@@ -23,6 +23,7 @@ import type * as platformAdmins from "../platformAdmins.js";
 import type * as properties from "../properties.js";
 import type * as sendEmail from "../sendEmail.js";
 import type * as services_notificationService from "../services/notificationService.js";
+import type * as storage from "../storage.js";
 import type * as superAdmins from "../superAdmins.js";
 import type * as tenantMaintenance from "../tenantMaintenance.js";
 import type * as tenantProfiles from "../tenantProfiles.js";
@@ -55,6 +56,7 @@ declare const fullApi: ApiFromModules<{
   properties: typeof properties;
   sendEmail: typeof sendEmail;
   "services/notificationService": typeof services_notificationService;
+  storage: typeof storage;
   superAdmins: typeof superAdmins;
   tenantMaintenance: typeof tenantMaintenance;
   tenantProfiles: typeof tenantProfiles;

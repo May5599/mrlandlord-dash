@@ -8,6 +8,8 @@ import { api } from "@/convex/_generated/api";
 import MaintenanceNav from "../MaintenanceNav";
 import { Id } from "@/convex/_generated/dataModel";
 import { useSessionToken } from "@/hooks/useSessionToken";
+import MaintenanceImage from "@/components/MaintenanceImage";
+
 
 export default function AllMaintenanceRequests() {
   /* ----------------------------------------------------------
@@ -188,6 +190,8 @@ export default function AllMaintenanceRequests() {
                   <th className="p-3">Unit</th>
                   <th className="p-3">Category</th>
                   <th className="p-3">Severity</th>
+                  <th className="p-3">Images</th>
+
                   <th className="p-3">Status</th>
                   <th className="p-3">Created</th>
                   <th className="p-3 text-right">Actions</th>
@@ -226,6 +230,27 @@ export default function AllMaintenanceRequests() {
                           {req.severity}
                         </span>
                       </td>
+
+                      <td className="p-3">
+  {req.images && req.images.length > 0 ? (
+    <div className="flex gap-1">
+      {req.images.slice(0, 2).map((id: string) => (
+        <div className="w-10 h-10" key={id}>
+          <MaintenanceImage storageId={id} />
+        </div>
+      ))}
+
+      {req.images.length > 2 && (
+        <span className="text-xs text-gray-500">
+          +{req.images.length - 2}
+        </span>
+      )}
+    </div>
+  ) : (
+    <span className="text-gray-300 text-sm">—</span>
+  )}
+</td>
+
 
                       <td className="p-3">
                         <span
@@ -267,7 +292,7 @@ export default function AllMaintenanceRequests() {
                 {filtered.length === 0 && (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={9}
                       className="text-center p-6 text-gray-400"
                     >
                       No maintenance requests found

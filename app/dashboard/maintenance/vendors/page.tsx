@@ -43,31 +43,37 @@ export default function VendorsPage() {
 
 
 
-  const handleAdd = async () => {
-    if (!form.name || !form.phone) {
-      alert("Name and phone are required");
-      return;
-    }
+const handleAdd = async () => {
+  if (!token) return;
 
-    await addVendor({
+  if (!form.name || !form.phone) {
+    alert("Name and phone are required");
+    return;
+  }
+
+await addVendor({
   token,
   name: form.name,
   phone: form.phone,
   email: form.email || "",
   specialty: form.specialty || "",
+  createdAt: new Date().toISOString(),
 });
 
-    setForm({ name: "", phone: "", email: "", specialty: "" });
-  };
+
+  setForm({ name: "", phone: "", email: "", specialty: "" });
+};
+
 
   const handleDelete = async (id: Id<"vendors">) => {
-    if (!confirm("Delete this vendor?")) return;
+  if (!token) return;
+  if (!confirm("Delete this vendor?")) return;
 
-    await removeVendor({
-      token,
-      id,
-    });
-  };
+  await removeVendor({
+    token,
+    id,
+  });
+};
 
   /* ----------------------------------------------------------
      LOADING
@@ -75,7 +81,7 @@ export default function VendorsPage() {
   if (!isReady) {
     return <p className="p-8">Loading…</p>;
   }
-  const authToken = token as string;
+  // const authToken = token as string;
 
 
   /* ----------------------------------------------------------

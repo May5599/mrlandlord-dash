@@ -139,14 +139,14 @@ export default function TenantDetailPage() {
           <h2 className="text-lg font-semibold mb-4">Lease Information</h2>
 
           <p><strong>Lease Start:</strong> {tenant.leaseStart}</p>
-          <p><strong>Lease End:</strong> {tenant.leaseEnd ?? "—"}</p>
+          <p><strong>Lease End:</strong> {tenant.leaseEnd ?? " "}</p>
           <p><strong>Rent:</strong> ${tenant.rentAmount}</p>
           <p><strong>Deposit:</strong> ${tenant.deposit}</p>
           <p><strong>Frequency:</strong> {tenant.rentFrequency}</p>
 
           <div className="mt-4">
-            <p><strong>Property:</strong> {property?.name ?? "—"}</p>
-            <p><strong>Unit:</strong> {unit?.unitNumber ?? "—"}</p>
+            <p><strong>Property:</strong> {property?.name ?? " "}</p>
+            <p><strong>Unit:</strong> {unit?.unitNumber ?? " "}</p>
           </div>
         </div>
 

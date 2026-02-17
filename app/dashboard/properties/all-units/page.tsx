@@ -232,7 +232,7 @@
 //                     </span>
 //                   </td>
 
-//                   <td className="p-3">{tenant?.name ?? "—"}</td>
+//                   <td className="p-3">{tenant?.name ?? " "}</td>
 
 //                   <td className="p-3 text-right">
 //                     <button
@@ -564,7 +564,7 @@ export default function AllUnitsPage() {
 
     await updateUnit({
       token,  // ✅ ADD TOKEN
-      id: editUnitId,
+      unitId: editUnitId,
       updates: {
         unitNumber: editUnit.unitNumber,
         type: editUnit.type,
@@ -584,7 +584,7 @@ export default function AllUnitsPage() {
     if (!token) return;
     if (!confirm("Delete this unit?")) return;
 
-    await deleteUnit({ token, id: unitId });
+    await deleteUnit({ token,unitId });
   };
 
   const handleVacate = async (unitId: Id<"units">) => {
@@ -696,7 +696,7 @@ export default function AllUnitsPage() {
                     </span>
                   </td>
 
-                  <td className="p-3">{tenant?.name ?? "—"}</td>
+                  <td className="p-3">{tenant?.name ?? " "}</td>
 
                   <td className="p-3 text-right">
                     <button

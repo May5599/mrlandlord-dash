@@ -185,10 +185,10 @@
 //                   <td className="p-3">{c.phone}</td>
 //                   <td className="p-3">{c.email}</td>
 //                   {tab === "tenant" && (
-//                     <td className="p-3">{property?.name ?? "—"}</td>
+//                     <td className="p-3">{property?.name ?? " "}</td>
 //                   )}
 //                   {tab === "tenant" && (
-//                     <td className="p-3">{unit?.unitNumber ?? "—"}</td>
+//                     <td className="p-3">{unit?.unitNumber ?? " "}</td>
 //                   )}
 //                   <td className="p-3">{c.notes}</td>
 //                   <td className="p-3 text-right">
@@ -551,10 +551,10 @@ export default function ContactsPage() {
                   <td className="p-3">{c.phone}</td>
                   <td className="p-3">{c.email}</td>
                   {tab === "tenant" && (
-                    <td className="p-3">{property?.name ?? "—"}</td>
+                    <td className="p-3">{property?.name ?? " "}</td>
                   )}
                   {tab === "tenant" && (
-                    <td className="p-3">{unit?.unitNumber ?? "—"}</td>
+                    <td className="p-3">{unit?.unitNumber ?? " "}</td>
                   )}
                   <td className="p-3">{c.notes}</td>
                   <td className="p-3 text-right">

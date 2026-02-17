@@ -68,6 +68,8 @@ export default function MaintenancePage() {
       return;
     }
 
+    if (!session) return;
+
     await fetchMutation(api.tenantMaintenance.createRequest, {
       token: session.token,
 

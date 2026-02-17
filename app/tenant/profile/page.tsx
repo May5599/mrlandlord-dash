@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import { fetchQuery, fetchMutation } from "convex/nextjs";
+import { Id } from "@/convex/_generated/dataModel";
+
 
 /* -------------------- TYPES -------------------- */
 
@@ -155,7 +157,9 @@ useEffect(() => {
 } else if (profile) {
   await fetchMutation(api.tenantProfiles.updateProfile, {
     token,
-    profileId: profile._id,
+    // profileId: profile._id,
+    profileId: profile._id as Id<"tenantProfiles">,
+
     data: cleaned,
   });
 }

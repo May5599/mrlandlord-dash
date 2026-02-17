@@ -99,7 +99,7 @@
 
 //       <PropertiesNav />
 
-//       {/* SECTION 1 — KPI CARDS */}
+//       {/* SECTION 1   KPI CARDS */}
 //       <div className="grid grid-cols-4 gap-6 my-6">
 //         <KpiCard title="Total Rent Collected" value={`$${totalRentCollected}`} />
 //         <KpiCard title="Lease Expiring Soon" value={leaseExpiringSoon} />
@@ -107,13 +107,13 @@
 //         <KpiCard title="Vacancy Cost (Est.)" value={`$${estimatedVacancyLoss}`} />
 //       </div>
 
-//       {/* SECTION 3 — CHART PLACEHOLDERS */}
+//       {/* SECTION 3   CHART PLACEHOLDERS */}
 //       <div className="grid grid-cols-2 gap-6 mb-6">
 //         <ChartPlaceholder title="Revenue by Property" />
 //         <ChartPlaceholder title="Occupancy Trend" />
 //       </div>
 
-//       {/* SECTION 2 — SCORING TABLE */}
+//       {/* SECTION 2   SCORING TABLE */}
 //       <div className="bg-white border rounded-xl shadow-sm">
 //         <table className="w-full text-left">
 //           <thead className="border-b bg-gray-50">

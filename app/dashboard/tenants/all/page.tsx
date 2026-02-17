@@ -229,8 +229,8 @@
 //                       {t.name}
 //                     </a>
 //                   </td>
-//                   <td className="p-3">{property?.name ?? "—"}</td>
-//                   <td className="p-3">{unit?.unitNumber ?? "—"}</td>
+//                   <td className="p-3">{property?.name ?? " "}</td>
+//                   <td className="p-3">{unit?.unitNumber ?? " "}</td>
 //                   <td className="p-3">{t.phone}</td>
 //                   <td className="p-3">{t.email}</td>
 //                   <td className="p-3">{t.status}</td>
@@ -556,8 +556,8 @@ export default function AllTenantsPage() {
                       {t.name}
                     </a>
                   </td>
-                  <td className="p-3">{property?.name ?? "—"}</td>
-                  <td className="p-3">{unit?.unitNumber ?? "—"}</td>
+                  <td className="p-3">{property?.name ?? " "}</td>
+                  <td className="p-3">{unit?.unitNumber ?? " "}</td>
                   <td className="p-3">{t.phone}</td>
                   <td className="p-3">{t.email}</td>
                   <td className="p-3">{t.status}</td>

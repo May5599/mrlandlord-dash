@@ -112,7 +112,7 @@ export default function PropertyWiseMaintenancePage() {
                         >
                           <td className="p-2">{req.title}</td>
                           <td className="p-2">
-                            {unit?.unitNumber ?? "—"}
+                            {unit?.unitNumber ?? " "}
                           </td>
                           <td className="p-2 capitalize">
                             {req.priority}

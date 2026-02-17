@@ -207,8 +207,8 @@ export default function AllMaintenanceRequests() {
                       className="border-b hover:bg-gray-50"
                     >
                       <td className="p-3 font-medium">{req.title}</td>
-                      <td className="p-3">{property?.name ?? "—"}</td>
-                      <td className="p-3">{unit?.unitNumber ?? "—"}</td>
+                      <td className="p-3">{property?.name ?? " "}</td>
+                      <td className="p-3">{unit?.unitNumber ?? " "}</td>
                       <td className="p-3 capitalize">{req.category}</td>
 
                       <td className="p-3">

@@ -38,7 +38,7 @@ export function UnitEditDialog({ unit, onClose, onSave }: UnitEditDialogProps) {
         {/* Header */}
         <div className="flex justify-between items-center border-b pb-3 mb-4">
           <h2 className="text-xl font-semibold text-gray-900">
-            Edit Unit — <span className="text-indigo-600">{formData.property}</span>
+            Edit Unit   <span className="text-indigo-600">{formData.property}</span>
           </h2>
           <button
             onClick={onClose}

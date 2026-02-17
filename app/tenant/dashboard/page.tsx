@@ -11,7 +11,7 @@ export default function TenantDashboard() {
 
 useEffect(() => {
   async function load() {
-    // Step 1 — verify session
+    // Step 1   verify session
     const res = await fetch("/api/tenant/get-session", {
       method: "GET",
       credentials: "include",
@@ -24,7 +24,7 @@ useEffect(() => {
       return;
     }
 
-    // Step 2 — fetch dashboard data USING TOKEN
+    // Step 2   fetch dashboard data USING TOKEN
     const d = await fetchQuery(api.tenantsDashboard.getTenantDashboard, {
       token: session.token,
     });

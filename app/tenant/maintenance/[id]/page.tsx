@@ -4,6 +4,8 @@ import { useParams } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useEffect, useState } from "react";
+import { Id } from "@/convex/_generated/dataModel";
+
 
 type TenantSession = {
   valid: boolean;
@@ -34,7 +36,10 @@ export default function TenantMaintenanceDetails() {
 
   const request = useQuery(
     api.tenantMaintenance.getMyRequestById,
-    session ? { token: session.token, id } : "skip"
+   session
+  ? { token: session.token, id: id as Id<"maintenance"> }
+  : "skip"
+
   );
 
   if (!session || !request) {

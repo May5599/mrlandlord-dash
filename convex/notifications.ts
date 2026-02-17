@@ -55,11 +55,12 @@ export const createNotification = mutation({
       recipientEmail = "mayankcan999@gmail.com";
     }
 
-    await ctx.runMutation(api.sendEmail.sendEmail, {
-      to: recipientEmail,
-      subject: `Maintenance Update: ${args.type}`,
-      text: args.message,
-    });
+  await ctx.runMutation(api.sendEmail.sendEmail, {
+  to: recipientEmail,
+  subject: `Maintenance Update: ${args.type}`,
+  html: `<p>${args.message}</p>`,
+});
+
 
     return { success: true };
   },

@@ -205,7 +205,7 @@ export default function RentAndAvailabilityPage() {
                   ? "Available Now"
                   : tenant?.leaseEnd
                   ? `Ends: ${tenant.leaseEnd}`
-                  : "—";
+                  : " ";
 
               return (
                 <tr
@@ -214,7 +214,7 @@ export default function RentAndAvailabilityPage() {
                 >
                   <td className="p-3">{unit.unitNumber}</td>
                   <td className="p-3">
-                    {property?.name ?? "—"}
+                    {property?.name ?? " "}
                   </td>
                   <td className="p-3">{unit.type}</td>
                   <td className="p-3">${unit.baseRent}</td>

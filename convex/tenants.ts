@@ -17,15 +17,20 @@ export const createTenant = mutation({
     name: v.string(),
     phone: v.string(),
     email: v.string(),
+    dob: v.optional(v.string()),
 
     leaseStart: v.string(),
     leaseEnd: v.optional(v.string()),
 
     rentAmount: v.number(),
-    rentFrequency: v.string(),
+    rentFrequency: v.union(v.literal("monthly")),
     deposit: v.number(),
 
-    status: v.string(),
+    status: v.union(
+  v.literal("active"),
+  v.literal("pending"),
+  v.literal("vacated")
+),
   },
 
   handler: async (ctx, args) => {
@@ -49,6 +54,8 @@ export const createTenant = mutation({
       name: args.name,
       phone: args.phone,
       email: args.email,
+      dob: args.dob,
+
 
       passwordHash: args.passwordHash,
       onboardingStatus: "pending_setup",
@@ -149,17 +156,47 @@ export const updateTenant = mutation({
     token: v.string(),
     tenantId: v.id("tenants"),
 
-    updates: v.object({
-      name: v.optional(v.string()),
-      phone: v.optional(v.string()),
-      email: v.optional(v.string()),
-      leaseStart: v.optional(v.string()),
-      leaseEnd: v.optional(v.string()),
-      rentAmount: v.optional(v.number()),
-      rentFrequency: v.optional(v.string()),
-      deposit: v.optional(v.number()),
-      status: v.optional(v.string()),
-    }),
+//     updates: v.object({
+//       name: v.optional(v.string()),
+//       phone: v.optional(v.string()),
+//       email: v.optional(v.string()),
+//       leaseStart: v.optional(v.string()),
+//       leaseEnd: v.optional(v.string()),
+//       rentAmount: v.optional(v.number()),
+//       rentFrequency: v.optional(
+//   v.union(v.literal("monthly"))
+// ),
+
+//       deposit: v.optional(v.number()),
+//       status: v.optional(
+//   v.union(
+//     v.literal("active"),
+//     v.literal("pending"),
+//     v.literal("vacated")
+//   )
+// ),
+//     }),
+updates: v.object({
+  name: v.optional(v.string()),
+  phone: v.optional(v.string()),
+  email: v.optional(v.string()),
+  dob: v.optional(v.string()),
+  leaseStart: v.optional(v.string()),
+  leaseEnd: v.optional(v.string()),
+  rentAmount: v.optional(v.number()),
+  rentFrequency: v.optional(
+    v.union(v.literal("monthly"))
+  ),
+  deposit: v.optional(v.number()),
+  status: v.optional(
+    v.union(
+      v.literal("active"),
+      v.literal("pending"),
+      v.literal("vacated")
+    )
+  ),
+}),
+
   },
 
   handler: async (ctx, { token, tenantId, updates }) => {
@@ -267,7 +304,8 @@ export const moveOutTenant = mutation({
 
     await ctx.db.patch(tenantId, {
       status: "vacated",
-      leaseEnd: new Date().toISOString(),
+      leaseEnd: new Date().toISOString().split("T")[0],
+
     });
 
     await ctx.db.patch(unitId, {

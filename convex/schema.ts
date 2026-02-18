@@ -146,11 +146,19 @@ companyAdminSessions: defineTable({
     leaseEnd: v.optional(v.string()),
 
     rentAmount: v.number(),
-    rentFrequency: v.string(),
+    rentFrequency: v.union(
+  v.literal("monthly")
+),
+
 
     deposit: v.number(),
 
-    status: v.string(),
+    status: v.union(
+  v.literal("active"),
+  v.literal("pending"),
+  v.literal("vacated")
+),
+
 
     documents: v.optional(
       v.array(
@@ -279,106 +287,111 @@ companyAdminSessions: defineTable({
     .index("by_company", ["companyId"])
     .index("by_token", ["token"]),
 
-  // -----------------------------------------------------------
-  // 8. Tenant Profiles
-  // -----------------------------------------------------------
-  tenantProfiles: defineTable({
-    companyId: v.id("companies"),      // 🔥 NEW
 
-    tenantId: v.id("tenants"),
+tenantProfiles: defineTable({
+  companyId: v.id("companies"),
+  tenantId: v.id("tenants"),
 
-    firstName: v.optional(v.string()),
-    middleName: v.optional(v.string()),
-    lastName: v.optional(v.string()),
-    dob: v.optional(v.string()),
-    phone: v.optional(v.string()),
+  profileImageId: v.optional(v.string()),
 
-    employmentStatus: v.optional(v.string()),
-    employerName: v.optional(v.string()),
-    jobTitle: v.optional(v.string()),
-    monthlyIncome: v.optional(v.number()),
 
-    occupants: v.optional(
-      v.array(
-        v.object({
-          fullName: v.string(),
-          phone: v.optional(v.string()),
-          relationship: v.optional(v.string())
-        })
-      )
-    ),
+  firstName: v.optional(v.string()),
+  middleName: v.optional(v.string()),
+  lastName: v.optional(v.string()),
+  dob: v.optional(v.string()),
+  phone: v.optional(v.string()),
+  weight: v.optional(v.number()),
 
-    vehicle: v.optional(
-      v.object({
-        model: v.optional(v.string()),
-        plate: v.optional(v.string())
-      })
-    ),
+  idType: v.optional(v.string()),
+  idNumber: v.optional(v.string()),
+  idExpiry: v.optional(v.string()),
+  citizenshipStatus: v.optional(v.string()),
 
-    pets: v.optional(
-      v.array(
-        v.object({
-          type: v.string(),
-          size: v.string()
-        })
-      )
-    ),
+  currentAddress: v.optional(
+    v.object({
+      street: v.optional(v.string()),
+      city: v.optional(v.string()),
+      province: v.optional(v.string()),
+      postalCode: v.optional(v.string()),
+    })
+  ),
 
-    emergencyContact: v.optional(
+  previousAddress: v.optional(
+    v.object({
+      street: v.optional(v.string()),
+      city: v.optional(v.string()),
+      province: v.optional(v.string()),
+      postalCode: v.optional(v.string()),
+    })
+  ),
+
+  occupants: v.optional(
+  v.array(
+    v.object({
+      fullName: v.string(),
+      phone: v.optional(v.string()),
+      relationship: v.optional(v.string()),
+    })
+  )
+),
+
+
+  employmentStatus: v.optional(v.string()),
+  employerName: v.optional(v.string()),
+  employerPhone: v.optional(v.string()),
+  employerEmail: v.optional(v.string()),
+  jobTitle: v.optional(v.string()),
+  employmentDuration: v.optional(v.string()),
+  monthlyIncome: v.optional(v.number()),
+
+  vehicle: v.optional(
+    v.object({
+      make: v.optional(v.string()),
+      model: v.optional(v.string()),
+      plate: v.optional(v.string()),
+      color: v.optional(v.string()),
+    })
+  ),
+
+  pets: v.optional(
+    v.array(
       v.object({
         name: v.optional(v.string()),
-        phone: v.optional(v.string()),
-        relationship: v.optional(v.string())
+        type: v.string(),
+        breed: v.optional(v.string()),
+        size: v.optional(v.string()),
+        weight: v.optional(v.number()),
       })
-    ),
+    )
+  ),
 
-    notes: v.optional(v.string()),
-    createdAt: v.number(),
-  })
-    .index("by_company", ["companyId"])
-    .index("by_tenant", ["tenantId"]),
+  documents: v.optional(
+    v.array(
+      v.object({
+        type: v.union(
+          v.literal("photo_id"),
+          v.literal("pay_stub"),
+          v.literal("credit_report")
+        ),
+        storageId: v.string(),
+        uploadedAt: v.number(),
+      })
+    )
+  ),
 
-    
-notifications: defineTable({
-  companyId: v.id("companies"),  // FIXED
-
-  type: v.string(),              // vendor_assigned, status_updated, hours_logged
-  message: v.string(),
-  maintenanceId: v.id("maintenance"),
-
-  vendorId: v.optional(v.id("vendors")),
-  tenantId: v.optional(v.id("tenants")),
-  status: v.optional(v.string()),
-  read: v.optional(v.boolean()),
-    // NEW
-
-
-  createdAt: v.string(),
-})
-.index("by_company", ["companyId"])
-.index("by_vendor", ["vendorId"])
-.index("by_maintenance", ["maintenanceId"]),
-
-contacts: defineTable({
-  companyId: v.id("companies"),
-
-  type: v.string(),   // tenant | vendor | contractor | emergency
-  name: v.string(),
-  phone: v.string(),
-  email: v.string(),
-
-  propertyId: v.optional(v.id("properties")),
-  unitId: v.optional(v.id("units")),
+  accuracyConfirmed: v.optional(v.boolean()),
+  creditCheckConsent: v.optional(v.boolean()),
+  applicationCompleted: v.optional(v.boolean()),
 
   notes: v.optional(v.string()),
-  createdAt: v.number(), // you used Date.now() → number
+
+  createdAt: v.number(),
+  updatedAt: v.optional(v.number()),
 })
-  .index("by_company", ["companyId"])
-  .index("by_type", ["type"]),
-
-
+.index("by_company", ["companyId"])
+.index("by_tenant", ["tenantId"]),
 
 });
 
-export default schema;
 
+  export default schema;

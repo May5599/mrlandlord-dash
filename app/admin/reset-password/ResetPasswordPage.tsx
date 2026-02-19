@@ -1,3 +1,125 @@
+// "use client";
+
+// import { useState, FormEvent, useEffect } from "react";
+// import { fetchMutation } from "convex/nextjs";
+// import { api } from "@/convex/_generated/api";
+// import { useSearchParams, useRouter } from "next/navigation";
+
+// export default function ResetPasswordPage() {
+//   const searchParams = useSearchParams();
+//   const router = useRouter();
+
+//   const token = searchParams.get("token");
+
+//   const [newPassword, setNewPassword] = useState<string>("");
+//   const [confirmPassword, setConfirmPassword] = useState<string>("");
+//   const [error, setError] = useState<string>("");
+//   const [message, setMessage] = useState<string>("");
+//   const [loading, setLoading] = useState<boolean>(false);
+
+//   useEffect(() => {
+//     if (!token) {
+//       setError("Invalid reset link.");
+//     }
+//   }, [token]);
+
+//   async function handleSubmit(
+//     event: FormEvent<HTMLFormElement>
+//   ): Promise<void> {
+//     event.preventDefault();
+
+//     if (!token) return;
+
+//     if (newPassword.length < 6) {
+//       setError("Password must be at least 6 characters.");
+//       return;
+//     }
+
+//     if (newPassword !== confirmPassword) {
+//       setError("Passwords do not match.");
+//       return;
+//     }
+
+//     setError("");
+//     setLoading(true);
+
+//     try {
+//       await fetchMutation(
+//         api.superAdmins.resetPassword,
+//         {
+//           token,
+//           newPassword,
+//         }
+//       );
+
+//       setMessage(
+//         "Password reset successful. Redirecting..."
+//       );
+
+//       setTimeout(() => {
+//         router.push("/admin/login");
+//       }, 2000);
+//     } catch {
+//       setError("Invalid or expired reset link.");
+//     } finally {
+//       setLoading(false);
+//     }
+//   }
+
+//   return (
+//     <div className="min-h-screen flex items-center justify-center bg-gray-100">
+//       <div className="bg-white p-6 rounded-xl shadow w-96">
+//         <h1 className="text-xl font-semibold mb-4">
+//           Reset Password
+//         </h1>
+
+//         {error !== "" && (
+//           <p className="text-red-600 text-sm mb-3">
+//             {error}
+//           </p>
+//         )}
+
+//         {message !== "" && (
+//           <p className="text-green-600 text-sm mb-3">
+//             {message}
+//           </p>
+//         )}
+
+//         <form onSubmit={handleSubmit}>
+//           <input
+//             type="password"
+//             className="border p-2 w-full mb-3 rounded"
+//             placeholder="New Password"
+//             value={newPassword}
+//             onChange={(e) =>
+//               setNewPassword(e.target.value)
+//             }
+//             required
+//           />
+
+//           <input
+//             type="password"
+//             className="border p-2 w-full mb-4 rounded"
+//             placeholder="Confirm Password"
+//             value={confirmPassword}
+//             onChange={(e) =>
+//               setConfirmPassword(e.target.value)
+//             }
+//             required
+//           />
+
+//           <button
+//             type="submit"
+//             disabled={loading}
+//             className="w-full bg-indigo-600 text-white py-2 rounded disabled:opacity-50"
+//           >
+//             {loading ? "Updating..." : "Reset Password"}
+//           </button>
+//         </form>
+//       </div>
+//     </div>
+//   );
+// }
 "use client";
 
 import { useState, FormEvent, useEffect } from "react";
@@ -44,17 +166,12 @@ export default function ResetPasswordPage() {
     setLoading(true);
 
     try {
-      await fetchMutation(
-        api.superAdmins.resetPassword,
-        {
-          token,
-          newPassword,
-        }
-      );
+      await fetchMutation(api.superAdmins.resetPassword, {
+        token,
+        newPassword,
+      });
 
-      setMessage(
-        "Password reset successful. Redirecting..."
-      );
+      setMessage("Password reset successful. Redirecting...");
 
       setTimeout(() => {
         router.push("/admin/login");
@@ -67,55 +184,84 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-6 rounded-xl shadow w-96">
-        <h1 className="text-xl font-semibold mb-4">
-          Reset Password
-        </h1>
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <img
+          src="/superadmin.jpg"
+          alt="MrLandlord Background"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/55" />
+      </div>
 
-        {error !== "" && (
-          <p className="text-red-600 text-sm mb-3">
-            {error}
-          </p>
-        )}
+      {/* Reset Card */}
+      <div className="relative z-10 w-full max-w-md mx-4">
+        <div className="bg-white/95 backdrop-blur-md shadow-2xl rounded-3xl p-8 border border-gray-100">
 
-        {message !== "" && (
-          <p className="text-green-600 text-sm mb-3">
-            {message}
-          </p>
-        )}
+          {/* Logo + Header */}
+          <div className="mb-8 text-center flex flex-col items-center">
+            <img
+              src="/Mrlandlord.ca_FAW .svg"
+              alt="MrLandlord Logo"
+              className="h-14 md:h-28 w-auto mb-4"
+            />
 
-        <form onSubmit={handleSubmit}>
-          <input
-            type="password"
-            className="border p-2 w-full mb-3 rounded"
-            placeholder="New Password"
-            value={newPassword}
-            onChange={(e) =>
-              setNewPassword(e.target.value)
-            }
-            required
-          />
+            <h1 className="text-lg font-semibold text-gray-900">
+              Reset Password
+            </h1>
 
-          <input
-            type="password"
-            className="border p-2 w-full mb-4 rounded"
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChange={(e) =>
-              setConfirmPassword(e.target.value)
-            }
-            required
-          />
+            <p className="text-sm text-gray-500 mt-1">
+              Create a new secure password
+            </p>
+          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-indigo-600 text-white py-2 rounded disabled:opacity-50"
-          >
-            {loading ? "Updating..." : "Reset Password"}
-          </button>
-        </form>
+          {/* Error */}
+          {error && (
+            <div className="mb-4 p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          {/* Success */}
+          {message && (
+            <div className="mb-4 p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg">
+              {message}
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+
+            <input
+              type="password"
+              className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+              placeholder="New Password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+            />
+
+            <input
+              type="password"
+              className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2.5 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition disabled:opacity-50 shadow-md"
+            >
+              {loading ? "Updating..." : "Reset Password"}
+            </button>
+          </form>
+
+        </div>
       </div>
     </div>
   );

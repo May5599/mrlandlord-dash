@@ -391,7 +391,18 @@ tenantProfiles: defineTable({
 .index("by_company", ["companyId"])
 .index("by_tenant", ["tenantId"]),
 
+leads: defineTable({
+  name: v.string(),
+  email: v.string(),
+  portfolioSize: v.string(),
+  message: v.string(),
+  createdAt: v.number(),
+}),
+
 });
+
+
+
 
 
   export default schema;

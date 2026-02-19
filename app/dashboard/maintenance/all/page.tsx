@@ -247,7 +247,7 @@ export default function AllMaintenanceRequests() {
       )}
     </div>
   ) : (
-    <span className="text-gray-300 text-sm">—</span>
+    <span className="text-gray-300 text-sm"> </span>
   )}
 </td>
 

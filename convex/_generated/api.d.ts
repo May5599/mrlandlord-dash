@@ -17,6 +17,7 @@ import type * as companyAdmins from "../companyAdmins.js";
 import type * as contacts from "../contacts.js";
 import type * as createDefaultCompany from "../createDefaultCompany.js";
 import type * as dashboard from "../dashboard.js";
+import type * as leads from "../leads.js";
 import type * as maintenance from "../maintenance.js";
 import type * as notifications from "../notifications.js";
 import type * as platformAdmins from "../platformAdmins.js";
@@ -50,6 +51,7 @@ declare const fullApi: ApiFromModules<{
   contacts: typeof contacts;
   createDefaultCompany: typeof createDefaultCompany;
   dashboard: typeof dashboard;
+  leads: typeof leads;
   maintenance: typeof maintenance;
   notifications: typeof notifications;
   platformAdmins: typeof platformAdmins;

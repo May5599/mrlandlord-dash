@@ -658,7 +658,7 @@ export default function AdminDashboardPage() {
   function logout(): void {
     document.cookie =
       "super_admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-    router.push("/admin/login");
+    router.push("/");
   }
 
   if (loading) {

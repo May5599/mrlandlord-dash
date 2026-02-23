@@ -275,22 +275,38 @@ export const submitApplication = mutation({
    GET PROFILE
 ========================================================= */
 
+// export const getProfile = query({
+//   args: {
+//     token: v.string(),
+//     tenantId: v.id("tenants"),
+//   },
+
+//   handler: async (ctx, { token, tenantId }) => {
+//     const { tenant } = await getTenantFromToken(ctx, token);
+
+//     if (tenant._id !== tenantId) {
+//       throw new Error("Access denied");
+//     }
+
+//     return await ctx.db
+//       .query("tenantProfiles")
+//       .withIndex("by_tenant", (q) => q.eq("tenantId", tenantId))
+//       .first();
+//   },
+// });
 export const getProfile = query({
   args: {
     token: v.string(),
-    tenantId: v.id("tenants"),
   },
 
-  handler: async (ctx, { token, tenantId }) => {
+  handler: async (ctx, { token }) => {
     const { tenant } = await getTenantFromToken(ctx, token);
-
-    if (tenant._id !== tenantId) {
-      throw new Error("Access denied");
-    }
 
     return await ctx.db
       .query("tenantProfiles")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", tenantId))
+      .withIndex("by_tenant", (q) =>
+        q.eq("tenantId", tenant._id)
+      )
       .first();
   },
 });

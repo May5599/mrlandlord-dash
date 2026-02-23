@@ -247,7 +247,7 @@ export default function TenantDashboard() {
           className="text-red-600 hover:underline"
           onClick={async () => {
             await fetch("/api/tenant/logout", { method: "POST" });
-            window.location.href = "/tenant/login";
+            window.location.href = "/";
           }}
         >
           Logout

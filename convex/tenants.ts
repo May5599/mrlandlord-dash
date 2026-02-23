@@ -339,3 +339,28 @@ export const deleteTenant = mutation({
     return true;
   },
 });
+
+export const getTenantApplicationProfile = query({
+  args: {
+    token: v.string(),
+    tenantId: v.id("tenants"),
+  },
+
+  handler: async (ctx, { token, tenantId }) => {
+    const companyId = await getCompanyIdFromToken(ctx, token);
+
+    const tenant = await ctx.db.get(tenantId);
+    if (!tenant || tenant.companyId !== companyId) {
+      throw new Error("Access denied");
+    }
+
+    const profile = await ctx.db
+      .query("tenantProfiles")
+      .withIndex("by_tenant", (q) =>
+        q.eq("tenantId", tenantId)
+      )
+      .first();
+
+    return profile ?? null;
+  },
+});

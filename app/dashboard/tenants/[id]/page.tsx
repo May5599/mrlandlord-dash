@@ -249,7 +249,7 @@ export default function TenantDetailPage() {
 
   const tenantProfile =
     useQuery(
-      api.tenantProfiles.getProfileByTenantId,
+      api.tenants.getTenantApplicationProfile,
       isReady ? { token, tenantId } : "skip"
     ) ?? null;
 

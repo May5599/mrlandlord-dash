@@ -294,19 +294,45 @@ export const submitApplication = mutation({
 //       .first();
 //   },
 // });
+
+// export const getProfile = query({
+//   args: {
+//     token: v.string(),
+//   },
+
+//   handler: async (ctx, { token }) => {
+//     const { tenant } = await getTenantFromToken(ctx, token);
+
+//     return await ctx.db
+//       .query("tenantProfiles")
+//       .withIndex("by_tenant", (q) =>
+//         q.eq("tenantId", tenant._id)
+//       )
+//       .first();
+//   },
+// });
+
 export const getProfile = query({
   args: {
     token: v.string(),
   },
 
   handler: async (ctx, { token }) => {
-    const { tenant } = await getTenantFromToken(ctx, token);
+    try {
+      const result = await getTenantFromToken(ctx, token);
+      console.log("Tenant resolved:", result);
 
-    return await ctx.db
-      .query("tenantProfiles")
-      .withIndex("by_tenant", (q) =>
-        q.eq("tenantId", tenant._id)
-      )
-      .first();
+      const profile = await ctx.db
+        .query("tenantProfiles")
+        .withIndex("by_tenant", (q) =>
+          q.eq("tenantId", result.tenant._id)
+        )
+        .first();
+
+      return profile ?? null;
+    } catch (err) {
+      console.error("GET PROFILE ERROR:", err);
+      throw err;
+    }
   },
 });

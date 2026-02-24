@@ -153,13 +153,20 @@ export default function TenantApplicationPage() {
       setToken(session.token);
       setTenantId(session.tenantId);
 
+      // const existing = await fetchQuery(
+      //   api.tenantProfiles.getProfile,
+      //   {
+      //     token: session.token,
+      //     tenantId: session.tenantId,
+      //   }
+      // );
+
       const existing = await fetchQuery(
-        api.tenantProfiles.getProfile,
-        {
-          token: session.token,
-          tenantId: session.tenantId,
-        }
-      );
+  api.tenantProfiles.getProfile,
+  {
+    token: session.token,
+  }
+);
 
       if (existing) setProfile(existing);
 

@@ -1,3 +1,5 @@
+
+
 // "use client";
 
 // import { useQuery } from "convex/react";
@@ -5,56 +7,66 @@
 // import { useSessionToken } from "@/hooks/useSessionToken";
 // import MaintenanceImage from "@/components/MaintenanceImage";
 
+// type TenantDocument = {
+//   type: "photo_id" | "pay_stub" | "credit_report";
+//   uploadedAt: number;
+//   storageId: string;
+// };
+
 // export default function TenantDocumentsPage() {
 //   const token = useSessionToken();
 //   const isReady = !!token;
 
-//   const profile = useQuery(
-//     api.tenantProfiles.getMyProfile,
-//     isReady ? { token } : "skip"
-//   );
 
-//   /* ----------------------------------
-//      LOADING STATE
-//   ---------------------------------- */
+//   const [tenantId, setTenantId] = useState<string | null>(null);
+
+// useEffect(() => {
+//   async function load() {
+//     const res = await fetch("/api/tenant/get-session", {
+//       credentials: "include",
+//     });
+
+//     const session = await res.json();
+
+//     if (session.valid) {
+//       setTenantId(session.tenantId);
+//     }
+//   }
+
+//   load();
+// }, []);
+//   const profile = useQuery(
+//   api.tenants.getTenantApplicationProfile,
+//   isReady ? { token, tenantId } : "skip"
+// );
+
 //   if (profile === undefined) {
 //     return (
 //       <div className="p-8 max-w-5xl mx-auto animate-pulse space-y-6">
 //         <div className="h-6 w-64 bg-gray-200 rounded" />
 //         <div className="grid md:grid-cols-3 gap-6">
 //           {Array.from({ length: 3 }).map((_, i) => (
-//             <div
-//               key={i}
-//               className="h-64 bg-gray-200 rounded-2xl"
-//             />
+//             <div key={i} className="h-64 bg-gray-200 rounded-2xl" />
 //           ))}
 //         </div>
 //       </div>
 //     );
 //   }
 
-//   /* ----------------------------------
-//      NO PROFILE
-//   ---------------------------------- */
 //   if (!profile) {
 //     return (
 //       <div className="p-8 max-w-3xl mx-auto text-center">
 //         <h2 className="text-xl font-semibold">
 //           No application found
 //         </h2>
-//         <p className="text-gray-500 mt-2">
-//           Please complete your application first.
-//         </p>
 //       </div>
 //     );
 //   }
 
-//   const documents = profile.documents ?? [];
+//   const documents: TenantDocument[] = profile.documents ?? [];
 
 //   return (
 //     <div className="max-w-6xl mx-auto p-8 space-y-10">
-
-//       {/* HEADER */}
 //       <div>
 //         <h1 className="text-3xl font-semibold">
 //           My Submitted Documents
@@ -64,20 +76,17 @@
 //         </p>
 //       </div>
 
-//       {/* DOCUMENT GRID */}
 //       {documents.length > 0 ? (
 //         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-//           {documents.map((doc: any) => (
+//           {documents.map((doc) => (
 //             <div
 //               key={doc.storageId}
 //               className="group bg-white border rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
 //             >
-//               {/* IMAGE */}
 //               <div className="relative h-52 bg-gray-100">
 //                 <MaintenanceImage storageId={doc.storageId} />
 //               </div>
 
-//               {/* INFO */}
 //               <div className="p-4 space-y-2">
 //                 <p className="text-sm font-semibold capitalize">
 //                   {doc.type.replace(/_/g, " ")}
@@ -93,24 +102,22 @@
 //         </div>
 //       ) : (
 //         <div className="bg-gray-50 border rounded-2xl p-10 text-center">
-//           <h3 className="text-lg font-semibold">
-//             No documents uploaded yet
-//           </h3>
-//           <p className="text-gray-500 mt-2">
-//             Upload documents from your application page.
-//           </p>
+//           No documents uploaded yet
 //         </div>
 //       )}
 //     </div>
 //   );
 // }
 
+
 "use client";
 
+import { useEffect, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useSessionToken } from "@/hooks/useSessionToken";
+import { Id } from "@/convex/_generated/dataModel";
 import MaintenanceImage from "@/components/MaintenanceImage";
+import { useSessionToken } from "@/hooks/useSessionToken";
 
 type TenantDocument = {
   type: "photo_id" | "pay_stub" | "credit_report";
@@ -120,11 +127,27 @@ type TenantDocument = {
 
 export default function TenantDocumentsPage() {
   const token = useSessionToken();
-  const isReady = !!token;
+  const [tenantId, setTenantId] = useState<Id<"tenants"> | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      const res = await fetch("/api/tenant/get-session", {
+        credentials: "include",
+      });
+
+      const session = await res.json();
+
+      if (session.valid) {
+        setTenantId(session.tenantId as Id<"tenants">);
+      }
+    }
+
+    load();
+  }, []);
 
   const profile = useQuery(
-    api.tenantProfiles.getProfile,   // ✅ FIXED NAME
-    isReady ? { token } : "skip"
+    api.tenants.getTenantApplicationProfile,
+    token && tenantId ? { token, tenantId } : "skip"
   );
 
   if (profile === undefined) {

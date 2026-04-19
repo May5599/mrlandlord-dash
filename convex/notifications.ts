@@ -1,8 +1,5 @@
-
-
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { api } from "./_generated/api";
 import { getCompanyIdFromToken } from "./_lib/getCompanyFromToken";
 
 /* -----------------------------------------------------
@@ -11,11 +8,9 @@ import { getCompanyIdFromToken } from "./_lib/getCompanyFromToken";
 export const createNotification = mutation({
   args: {
     token: v.string(),
-
     type: v.string(),
     message: v.string(),
-    maintenanceId: v.id("maintenance"),
-
+    maintenanceId: v.optional(v.id("maintenance")),
     vendorId: v.optional(v.id("vendors")),
     tenantId: v.optional(v.id("tenants")),
     status: v.optional(v.string()),
@@ -31,36 +26,10 @@ export const createNotification = mutation({
       vendorId: args.vendorId,
       tenantId: args.tenantId,
       status: args.status,
-
       companyId,
       read: false,
       createdAt: new Date().toISOString(),
     });
-
-    // determine email recipient
-    let recipientEmail: string | null = null;
-
-    if (args.vendorId) {
-      const vendor = await ctx.db.get(args.vendorId);
-      recipientEmail = vendor?.email ?? null;
-    }
-
-    if (args.tenantId) {
-      const tenant = await ctx.db.get(args.tenantId);
-      recipientEmail = tenant?.email ?? null;
-    }
-
-    // fallback manager email
-    if (!recipientEmail) {
-      recipientEmail = "mayankcan999@gmail.com";
-    }
-
-  await ctx.runMutation(api.sendEmail.sendEmail, {
-  to: recipientEmail,
-  subject: `Maintenance Update: ${args.type}`,
-  html: `<p>${args.message}</p>`,
-});
-
 
     return { success: true };
   },
@@ -106,7 +75,27 @@ export const markAsRead = mutation({
 });
 
 /* -----------------------------------------------------
-   UNREAD COUNT (SAFE)
+   MARK ALL AS READ
+------------------------------------------------------ */
+export const markAllAsRead = mutation({
+  args: { token: v.string() },
+
+  handler: async (ctx, { token }) => {
+    const companyId = await getCompanyIdFromToken(ctx, token);
+
+    const unread = await ctx.db
+      .query("notifications")
+      .withIndex("by_company", (q) => q.eq("companyId", companyId))
+      .filter((q) => q.eq(q.field("read"), false))
+      .collect();
+
+    await Promise.all(unread.map((n) => ctx.db.patch(n._id, { read: true })));
+    return { count: unread.length };
+  },
+});
+
+/* -----------------------------------------------------
+   UNREAD COUNT
 ------------------------------------------------------ */
 export const getUnreadCount = query({
   args: { token: v.optional(v.string()) },

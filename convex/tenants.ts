@@ -1,6 +1,8 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCompanyIdFromToken } from "./_lib/getCompanyFromToken";
+import { sendTenantWelcomeEmail, sendTenantMovedOutEmail } from "./_lib/emailService";
+import { insertNotification } from "./_lib/notificationHelpers";
 
 
 /* ---------------------------------
@@ -36,12 +38,14 @@ export const createTenant = mutation({
   handler: async (ctx, args) => {
     const companyId = await getCompanyIdFromToken(ctx, args.token);
 
-    const property = await ctx.db.get(args.propertyId);
+    const [property, unit, company] = await Promise.all([
+      ctx.db.get(args.propertyId),
+      ctx.db.get(args.unitId),
+      ctx.db.get(companyId),
+    ]);
     if (!property || property.companyId !== companyId) {
       throw new Error("Invalid property access");
     }
-
-    const unit = await ctx.db.get(args.unitId);
     if (!unit || unit.companyId !== companyId) {
       throw new Error("Invalid unit access");
     }
@@ -74,6 +78,28 @@ export const createTenant = mutation({
     await ctx.db.patch(args.unitId, {
       currentTenantId: tenantId,
       status: "occupied",
+    });
+
+    // Welcome email to tenant
+    try {
+      await sendTenantWelcomeEmail(
+        args.email,
+        args.name,
+        property.name || "Your Property",
+        unit.unitNumber || "Unit",
+        args.leaseStart,
+        company?.name
+      );
+    } catch (error) {
+      console.error("Failed to send tenant welcome email:", error);
+    }
+
+    // In-app notification for company admin
+    await insertNotification(ctx.db, {
+      companyId,
+      type: "tenant_created",
+      message: `New tenant added: ${args.name} at ${property.name}, Unit ${unit.unitNumber}`,
+      tenantId,
     });
 
     return tenantId;
@@ -302,15 +328,42 @@ export const moveOutTenant = mutation({
       throw new Error("Access denied");
     }
 
+    const moveOutDate = new Date().toISOString().split("T")[0];
+
     await ctx.db.patch(tenantId, {
       status: "vacated",
-      leaseEnd: new Date().toISOString().split("T")[0],
-
+      leaseEnd: moveOutDate,
     });
 
     await ctx.db.patch(unitId, {
       currentTenantId: undefined,
       status: "vacant",
+    });
+
+    const [property, unitRecord, company] = await Promise.all([
+      ctx.db.get(tenant.propertyId),
+      ctx.db.get(unitId),
+      ctx.db.get(tenant.companyId),
+    ]);
+    try {
+      await sendTenantMovedOutEmail(
+        tenant.email,
+        tenant.name,
+        property?.name ?? "Property",
+        unitRecord?.unitNumber ?? "Unit",
+        moveOutDate,
+        company?.name
+      );
+    } catch (error) {
+      console.error("Failed to send move-out email:", error);
+    }
+
+    // In-app notification for company admin
+    await insertNotification(ctx.db, {
+      companyId: tenant.companyId,
+      type: "tenant_moved_out",
+      message: `${tenant.name} has moved out of ${property?.name ?? "Property"}, Unit ${unitRecord?.unitNumber ?? ""}`,
+      tenantId,
     });
 
     return true;

@@ -19,17 +19,12 @@ import {
 } from "recharts";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { getAdminToken } from "@/lib/getAdminToken";
 
 const COLORS = ["#6366f1", "#10b981", "#fbbf24", "#ef4444"];
 
 export default function DashboardPage() {
-  const token =
-    typeof document !== "undefined"
-      ? document.cookie
-          .split("; ")
-          .find(c => c.startsWith("company_admin_token="))
-          ?.split("=")[1]
-      : undefined;
+  const token = typeof document !== "undefined" ? getAdminToken() : undefined;
 
   const data = useQuery(
     api.dashboard.getCompanyDashboardStats,

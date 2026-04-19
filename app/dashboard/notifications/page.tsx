@@ -74,7 +74,7 @@
 //                 }`}
 //             >
 //               {/* Icon */}
-//               <div className="text-3xl">{getIcon(n.type)}</div>
+//               <div className="text-3xl">{getNotificationIcon(n.type)}</div>
 
 //               {/* Content */}
 //               <div className="flex-1">
@@ -106,16 +106,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useSessionToken } from "@/hooks/useSessionToken";
-
-function getIcon(type: string) {
-  const map: Record<string, string> = {
-    vendor_assigned: "🧰",
-    hours_logged: "⏱️",
-    status_updated: "🔄",
-  };
-
-  return map[type] || "🔔";
-}
+import { getNotificationIcon } from "@/lib/notificationIcons";
 
 export default function NotificationsPage() {
   const token = useSessionToken();
@@ -161,7 +152,7 @@ export default function NotificationsPage() {
                     : "bg-white border-gray-200"
                 }`}
             >
-              <div className="text-3xl">{getIcon(n.type)}</div>
+              <div className="text-3xl">{getNotificationIcon(n.type)}</div>
 
               <div className="flex-1">
                 <p className="font-semibold text-gray-900">{n.message}</p>

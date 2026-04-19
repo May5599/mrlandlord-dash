@@ -10,6 +10,7 @@
 
 import type * as _lib_auth from "../_lib/auth.js";
 import type * as _lib_email from "../_lib/email.js";
+import type * as _lib_emailService from "../_lib/emailService.js";
 import type * as _lib_getCompanyFromToken from "../_lib/getCompanyFromToken.js";
 import type * as _lib_getTenantFromToken from "../_lib/getTenantFromToken.js";
 import type * as _lib_password from "../_lib/password.js";
@@ -44,6 +45,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   "_lib/auth": typeof _lib_auth;
   "_lib/email": typeof _lib_email;
+  "_lib/emailService": typeof _lib_emailService;
   "_lib/getCompanyFromToken": typeof _lib_getCompanyFromToken;
   "_lib/getTenantFromToken": typeof _lib_getTenantFromToken;
   "_lib/password": typeof _lib_password;

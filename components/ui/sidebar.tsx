@@ -86,8 +86,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { getAdminToken } from "@/lib/getAdminToken";
 
 import {
   Home,
@@ -117,14 +119,18 @@ export function Sidebar() {
   const router = useRouter();
   const logout = useMutation(api.companyAdmins.logout);
 
-  // Live unread notifications count
-  const unread = useQuery(api.notifications.getUnreadCount, {}) ?? 0;
+  const [token, setToken] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    setToken(getAdminToken());
+  }, []);
+
+  const unread = useQuery(
+    api.notifications.getUnreadCount,
+    token !== undefined ? { token } : "skip"
+  ) ?? 0;
 
   const handleLogout = async () => {
-    const token = document.cookie
-      .split("; ")
-      .find(c => c.startsWith("company_admin_token="))
-      ?.split("=")[1];
+    const token = getAdminToken();
 
     try {
       if (token) {

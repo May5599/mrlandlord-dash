@@ -5,6 +5,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { fetchMutation } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { Sidebar } from "@/components/ui/sidebar";
+import { NotificationBell } from "@/components/ui/notification-bell";
+import { getAdminToken } from "@/lib/getAdminToken";
 
 export default function DashboardLayout({
   children,
@@ -28,10 +30,7 @@ export default function DashboardLayout({
     let mounted = true;
 
     async function verify() {
-      const token = document.cookie
-        .split("; ")
-        .find(c => c.startsWith("company_admin_token="))
-        ?.split("=")[1];
+      const token = getAdminToken();
 
       if (!token) {
         if (mounted) setLoading(false);
@@ -83,9 +82,15 @@ export default function DashboardLayout({
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
-      <main className="flex-1 ml-64 p-6 overflow-y-auto">
-        {children}
-      </main>
+      <div className="flex-1 ml-64 flex flex-col overflow-hidden">
+        {/* Top header with notification bell */}
+        <header className="sticky top-0 z-20 bg-white border-b border-gray-200 px-6 h-14 flex items-center justify-end shrink-0 shadow-sm">
+          <NotificationBell />
+        </header>
+        <main className="flex-1 p-6 overflow-y-auto">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

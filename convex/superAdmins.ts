@@ -2,7 +2,7 @@ import {
   notifyCompanyAdmin,
   notifySuperAdmin,
 } from "./services/notificationService";
-import { sendEmail } from "./_lib/email";
+import { sendAdminAccountCreatedEmail, sendPasswordResetEmail } from "./_lib/emailService";
 
 import { generatePassword } from "../lib/generatePassword";
 // import { sendLoginEmail } from "../lib/email";
@@ -133,17 +133,11 @@ export const createCompanyWithAdmin = mutation({
       createdAt: new Date().toISOString(),
     });
 
-  await notifyCompanyAdmin(ctx, {
-  companyId,
-  subject: `Welcome to MrLandlord – ${args.companyName}`,
-  html: `
-    <h2>${args.companyName} Admin Access</h2>
-    <p>Your company account has been created.</p>
-    <p><strong>Email:</strong> ${args.adminEmail}</p>
-    <p><strong>Password:</strong> ${generatedPassword}</p>
-    <p>Please login and change your password immediately.</p>
-  `,
-});
+    try {
+      await sendAdminAccountCreatedEmail(args.adminName, args.adminEmail, args.companyName, generatedPassword);
+    } catch (error) {
+      console.error("Failed to send admin account created email:", error);
+    }
 
 
     return { success: true };
@@ -498,21 +492,10 @@ export const requestPasswordReset = mutation({
 
 
     try {
-      await sendEmail({
-  to: admin.email,
-  subject: "Password Reset Request",
-  html: `
-    <h3>Password Reset</h3>
-    <p>Click the link below to reset your password:</p>
-    <a href="${resetLink}">${resetLink}</a>
-    <p>This link expires in 30 minutes.</p>
-  `,
-});
-
-
-
-
-    } catch {}
+      await sendPasswordResetEmail(admin.email, admin.name, resetLink);
+    } catch (error) {
+      console.error("Failed to send password reset email:", error);
+    }
 
     return { success: true };
   },

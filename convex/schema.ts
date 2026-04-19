@@ -399,6 +399,22 @@ leads: defineTable({
   createdAt: v.number(),
 }),
 
+  // -----------------------------------------------------------
+  // 8. Notifications
+  // -----------------------------------------------------------
+  notifications: defineTable({
+    companyId: v.id("companies"),
+    type: v.string(),
+    message: v.string(),
+    maintenanceId: v.optional(v.id("maintenance")),
+    vendorId: v.optional(v.id("vendors")),
+    tenantId: v.optional(v.id("tenants")),
+    status: v.optional(v.string()),
+    read: v.boolean(),
+    createdAt: v.string(),
+  })
+    .index("by_company", ["companyId"]),
+
 });
 
 

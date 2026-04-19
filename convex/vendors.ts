@@ -3,6 +3,8 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCompanyIdFromToken } from "./_lib/getCompanyFromToken";
+import { sendVendorWelcomeEmail } from "./_lib/emailService";
+import { insertNotification } from "./_lib/notificationHelpers";
 
 /* -----------------------------------------------------
    ADD VENDOR
@@ -20,14 +22,36 @@ export const addVendor = mutation({
   handler: async (ctx, args) => {
     const companyId = await getCompanyIdFromToken(ctx, args.token);
 
-    return await ctx.db.insert("vendors", {
+    const [vendorId, company] = await Promise.all([
+      ctx.db.insert("vendors", {
+        companyId,
+        name: args.name,
+        phone: args.phone,
+        email: args.email,
+        specialty: args.specialty,
+        createdAt: args.createdAt,
+      }),
+      ctx.db.get(companyId),
+    ]);
+
+    // Welcome email to vendor
+    if (args.email) {
+      try {
+        await sendVendorWelcomeEmail(args.email, args.name, args.specialty, company?.name);
+      } catch (error) {
+        console.error("Failed to send vendor welcome email:", error);
+      }
+    }
+
+    // In-app notification for company admin
+    await insertNotification(ctx.db, {
       companyId,
-      name: args.name,
-      phone: args.phone,
-      email: args.email,
-      specialty: args.specialty,
-      createdAt: args.createdAt,
+      type: "vendor_added",
+      message: `New vendor added: ${args.name}${args.specialty ? ` (${args.specialty})` : ""}`,
+      vendorId,
     });
+
+    return vendorId;
   },
 });
 

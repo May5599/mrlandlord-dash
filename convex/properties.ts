@@ -2,6 +2,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCompanyIdFromSession } from "./_lib/auth";
+import { sendPropertyCreatedEmail } from "./_lib/emailService";
 
 /* -----------------------------------------------------
     CREATE PROPERTY
@@ -32,24 +33,43 @@ export const createProperty = mutation({
   handler: async (ctx, args) => {
     const companyId = await getCompanyIdFromSession(ctx, args.token);
 
-    return ctx.db.insert("properties", {
-      companyId,
-      name: args.name,
-      type: args.type,
-      address: args.address,
-      city: args.city,
-      state: args.state,
-      postalCode: args.postalCode,
-      country: args.country,
-      ownerName: args.ownerName,
-      ownerPhone: args.ownerPhone,
-      ownerEmail: args.ownerEmail,
-      managerName: args.managerName,
-      managerPhone: args.managerPhone,
-      managerEmail: args.managerEmail,
-      notes: args.notes,
-      createdAt: new Date().toISOString(),
-    });
+    const [propertyId, company] = await Promise.all([
+      ctx.db.insert("properties", {
+        companyId,
+        name: args.name,
+        type: args.type,
+        address: args.address,
+        city: args.city,
+        state: args.state,
+        postalCode: args.postalCode,
+        country: args.country,
+        ownerName: args.ownerName,
+        ownerPhone: args.ownerPhone,
+        ownerEmail: args.ownerEmail,
+        managerName: args.managerName,
+        managerPhone: args.managerPhone,
+        managerEmail: args.managerEmail,
+        notes: args.notes,
+        createdAt: new Date().toISOString(),
+      }),
+      ctx.db.get(companyId),
+    ]);
+
+    try {
+      await sendPropertyCreatedEmail(
+        args.ownerEmail || args.managerEmail || "",
+        args.ownerName || args.managerName || "Property Owner",
+        args.name,
+        args.address,
+        args.city,
+        args.postalCode,
+        company?.name
+      );
+    } catch (error) {
+      console.error("Failed to send property created email:", error);
+    }
+
+    return propertyId;
   },
 });
 

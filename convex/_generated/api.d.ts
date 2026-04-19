@@ -13,6 +13,7 @@ import type * as _lib_email from "../_lib/email.js";
 import type * as _lib_emailService from "../_lib/emailService.js";
 import type * as _lib_getCompanyFromToken from "../_lib/getCompanyFromToken.js";
 import type * as _lib_getTenantFromToken from "../_lib/getTenantFromToken.js";
+import type * as _lib_notificationHelpers from "../_lib/notificationHelpers.js";
 import type * as _lib_password from "../_lib/password.js";
 import type * as companyAdmins from "../companyAdmins.js";
 import type * as contacts from "../contacts.js";
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   "_lib/emailService": typeof _lib_emailService;
   "_lib/getCompanyFromToken": typeof _lib_getCompanyFromToken;
   "_lib/getTenantFromToken": typeof _lib_getTenantFromToken;
+  "_lib/notificationHelpers": typeof _lib_notificationHelpers;
   "_lib/password": typeof _lib_password;
   companyAdmins: typeof companyAdmins;
   contacts: typeof contacts;

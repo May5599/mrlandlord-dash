@@ -1,11 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCompanyIdFromToken } from "./_lib/getCompanyFromToken";
-import {
-  sendMaintenanceAssignedEmail,
-  sendMaintenanceCompletedEmail,
-  sendMaintenanceStatusUpdatedEmail,
-} from "./_lib/emailService";
+import { internal } from "./_generated/api";
 import { insertNotification } from "./_lib/notificationHelpers";
 
 /* -----------------------------------------------------
@@ -75,6 +71,31 @@ export const createMaintenance = mutation({
       tenantId: args.tenantId,
     });
 
+    // Email company admin about new request
+    const [companyAdmin, property, unit, company] = await Promise.all([
+      ctx.db.query("companyAdmins").withIndex("by_company", q => q.eq("companyId", companyId)).first(),
+      ctx.db.get(args.propertyId),
+      ctx.db.get(args.unitId),
+      ctx.db.get(companyId),
+    ]);
+
+    const tenantName = args.tenantId
+      ? (await ctx.db.get(args.tenantId))?.name ?? "Tenant"
+      : "Tenant";
+
+    if (companyAdmin?.email) {
+      await ctx.scheduler.runAfter(0, internal.emailActions.sendMaintenanceSubmitted, {
+        adminEmail: companyAdmin.email,
+        tenantName,
+        propertyName: property?.name ?? "Property",
+        unitNumber: unit?.unitNumber ?? "Unit",
+        maintenanceTitle: args.title,
+        category: args.category,
+        severity: args.severity,
+        companyName: company?.name,
+      });
+    }
+
     return { success: true, requestId: id };
   },
 });
@@ -124,43 +145,35 @@ export const assignVendor = mutation({
       vendorId,
     });
 
-    // Email to vendor
+    // Email vendor
     if (vendor?.email) {
-      try {
-        await sendMaintenanceAssignedEmail(
-          vendor.email,
-          vendor.name ?? "Vendor",
-          property?.name ?? "Property",
-          unit?.unitNumber ?? "Unit",
-          req.title,
-          req.priority,
-          req.scheduledDate,
-          `${req.scheduledTimeFrom} – ${req.scheduledTimeTo}`,
-          req.accessPreference,
-          company?.name
-        );
-      } catch (error) {
-        console.error("Failed to send maintenance assigned email:", error);
-      }
+      await ctx.scheduler.runAfter(0, internal.emailActions.sendMaintenanceAssigned, {
+        vendorEmail: vendor.email,
+        vendorName: vendor.name ?? "Vendor",
+        propertyName: property?.name ?? "Property",
+        unitNumber: unit?.unitNumber ?? "Unit",
+        maintenanceTitle: req.title,
+        priority: req.priority,
+        scheduledDate: req.scheduledDate,
+        scheduledTime: `${req.scheduledTimeFrom} – ${req.scheduledTimeTo}`,
+        accessInstructions: req.accessPreference,
+        companyName: company?.name,
+      });
     }
 
-    // Email to tenant — notify their request has a vendor assigned
+    // Email tenant — vendor assigned
     if (req.tenantId) {
       const tenant = await ctx.db.get(req.tenantId);
       if (tenant?.email) {
-        try {
-          await sendMaintenanceStatusUpdatedEmail(
-            tenant.email,
-            tenant.name,
-            req.title,
-            "in-progress",
-            property?.name ?? "Property",
-            unit?.unitNumber ?? "Unit",
-            company?.name
-          );
-        } catch (error) {
-          console.error("Failed to send tenant assignment notification email:", error);
-        }
+        await ctx.scheduler.runAfter(0, internal.emailActions.sendMaintenanceStatusUpdated, {
+          tenantEmail: tenant.email,
+          tenantName: tenant.name,
+          maintenanceTitle: req.title,
+          newStatus: "in-progress",
+          propertyName: property?.name ?? "Property",
+          unitNumber: unit?.unitNumber ?? "Unit",
+          companyName: company?.name,
+        });
       }
     }
 
@@ -319,38 +332,30 @@ export const updateMaintenance = mutation({
     if (updates.status === "completed" && req.assignedVendorId) {
       const vendor = await ctx.db.get(req.assignedVendorId);
       if (vendor?.email) {
-        try {
-          await sendMaintenanceCompletedEmail(
-            vendor.email,
-            vendor.name ?? "Vendor",
-            property?.name ?? "Property",
-            unit?.unitNumber ?? "Unit",
-            req.title,
-            company?.name
-          );
-        } catch (error) {
-          console.error("Failed to send maintenance completed email:", error);
-        }
+        await ctx.scheduler.runAfter(0, internal.emailActions.sendMaintenanceCompleted, {
+          vendorEmail: vendor.email,
+          vendorName: vendor.name ?? "Vendor",
+          propertyName: property?.name ?? "Property",
+          unitNumber: unit?.unitNumber ?? "Unit",
+          maintenanceTitle: req.title,
+          companyName: company?.name,
+        });
       }
     }
 
-    // Email tenant on any status change
+    // Email tenant on status change
     if (updates.status && req.tenantId) {
       const tenant = await ctx.db.get(req.tenantId);
       if (tenant?.email) {
-        try {
-          await sendMaintenanceStatusUpdatedEmail(
-            tenant.email,
-            tenant.name,
-            req.title,
-            updates.status,
-            property?.name ?? "Property",
-            unit?.unitNumber ?? "Unit",
-            company?.name
-          );
-        } catch (error) {
-          console.error("Failed to send tenant status update email:", error);
-        }
+        await ctx.scheduler.runAfter(0, internal.emailActions.sendMaintenanceStatusUpdated, {
+          tenantEmail: tenant.email,
+          tenantName: tenant.name,
+          maintenanceTitle: req.title,
+          newStatus: updates.status,
+          propertyName: property?.name ?? "Property",
+          unitNumber: unit?.unitNumber ?? "Unit",
+          companyName: company?.name,
+        });
       }
     }
 

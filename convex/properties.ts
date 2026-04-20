@@ -2,7 +2,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCompanyIdFromSession } from "./_lib/auth";
-import { sendPropertyCreatedEmail } from "./_lib/emailService";
+import { internal } from "./_generated/api";
 
 /* -----------------------------------------------------
     CREATE PROPERTY
@@ -55,18 +55,17 @@ export const createProperty = mutation({
       ctx.db.get(companyId),
     ]);
 
-    try {
-      await sendPropertyCreatedEmail(
-        args.ownerEmail || args.managerEmail || "",
-        args.ownerName || args.managerName || "Property Owner",
-        args.name,
-        args.address,
-        args.city,
-        args.postalCode,
-        company?.name
-      );
-    } catch (error) {
-      console.error("Failed to send property created email:", error);
+    const recipientEmail = args.ownerEmail || args.managerEmail || "";
+    if (recipientEmail) {
+      await ctx.scheduler.runAfter(0, internal.emailActions.sendPropertyCreated, {
+        recipientEmail,
+        recipientName: args.ownerName || args.managerName || "Property Owner",
+        propertyName: args.name,
+        address: args.address,
+        city: args.city,
+        postalCode: args.postalCode,
+        companyName: company?.name,
+      });
     }
 
     return propertyId;

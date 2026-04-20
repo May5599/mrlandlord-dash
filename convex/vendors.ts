@@ -3,7 +3,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCompanyIdFromToken } from "./_lib/getCompanyFromToken";
-import { sendVendorWelcomeEmail } from "./_lib/emailService";
+import { internal } from "./_generated/api";
 import { insertNotification } from "./_lib/notificationHelpers";
 
 /* -----------------------------------------------------
@@ -34,13 +34,13 @@ export const addVendor = mutation({
       ctx.db.get(companyId),
     ]);
 
-    // Welcome email to vendor
     if (args.email) {
-      try {
-        await sendVendorWelcomeEmail(args.email, args.name, args.specialty, company?.name);
-      } catch (error) {
-        console.error("Failed to send vendor welcome email:", error);
-      }
+      await ctx.scheduler.runAfter(0, internal.emailActions.sendVendorWelcome, {
+        vendorEmail: args.email,
+        vendorName: args.name,
+        specialty: args.specialty,
+        companyName: company?.name,
+      });
     }
 
     // In-app notification for company admin

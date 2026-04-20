@@ -1,7 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCompanyIdFromToken } from "./_lib/getCompanyFromToken";
-import { sendTenantWelcomeEmail, sendTenantMovedOutEmail } from "./_lib/emailService";
+import { internal } from "./_generated/api";
 import { insertNotification } from "./_lib/notificationHelpers";
 
 
@@ -80,19 +80,14 @@ export const createTenant = mutation({
       status: "occupied",
     });
 
-    // Welcome email to tenant
-    try {
-      await sendTenantWelcomeEmail(
-        args.email,
-        args.name,
-        property.name || "Your Property",
-        unit.unitNumber || "Unit",
-        args.leaseStart,
-        company?.name
-      );
-    } catch (error) {
-      console.error("Failed to send tenant welcome email:", error);
-    }
+    await ctx.scheduler.runAfter(0, internal.emailActions.sendTenantWelcome, {
+      tenantEmail: args.email,
+      tenantName: args.name,
+      propertyName: property.name || "Your Property",
+      unitNumber: unit.unitNumber || "Unit",
+      leaseStart: args.leaseStart,
+      companyName: company?.name,
+    });
 
     // In-app notification for company admin
     await insertNotification(ctx.db, {
@@ -345,18 +340,14 @@ export const moveOutTenant = mutation({
       ctx.db.get(unitId),
       ctx.db.get(tenant.companyId),
     ]);
-    try {
-      await sendTenantMovedOutEmail(
-        tenant.email,
-        tenant.name,
-        property?.name ?? "Property",
-        unitRecord?.unitNumber ?? "Unit",
-        moveOutDate,
-        company?.name
-      );
-    } catch (error) {
-      console.error("Failed to send move-out email:", error);
-    }
+    await ctx.scheduler.runAfter(0, internal.emailActions.sendTenantMovedOut, {
+      tenantEmail: tenant.email,
+      tenantName: tenant.name,
+      propertyName: property?.name ?? "Property",
+      unitNumber: unitRecord?.unitNumber ?? "Unit",
+      moveOutDate,
+      companyName: company?.name,
+    });
 
     // In-app notification for company admin
     await insertNotification(ctx.db, {

@@ -57,7 +57,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getTenantFromToken } from "./_lib/getTenantFromToken";
 import { insertNotification } from "./_lib/notificationHelpers";
-import { sendMaintenanceSubmittedEmail } from "./_lib/emailService";
+import { internal } from "./_generated/api";
 
 /* ------------------------------------------------------------------ */
 /* CREATE REQUEST */
@@ -132,20 +132,16 @@ export const createRequest = mutation({
         ctx.db.get(tenant.propertyId),
         ctx.db.get(tenant.unitId),
       ]);
-      try {
-        await sendMaintenanceSubmittedEmail(
-          company.managerEmail,
-          tenant.name,
-          property?.name ?? "Property",
-          unit?.unitNumber ?? "Unit",
-          args.title,
-          args.category,
-          args.severity,
-          company.name
-        );
-      } catch (error) {
-        console.error("Failed to send maintenance submitted email to admin:", error);
-      }
+      await ctx.scheduler.runAfter(0, internal.emailActions.sendMaintenanceSubmitted, {
+        adminEmail: company.managerEmail,
+        tenantName: tenant.name,
+        propertyName: property?.name ?? "Property",
+        unitNumber: unit?.unitNumber ?? "Unit",
+        maintenanceTitle: args.title,
+        category: args.category,
+        severity: args.severity,
+        companyName: company.name,
+      });
     }
 
     return { success: true, requestId: id };

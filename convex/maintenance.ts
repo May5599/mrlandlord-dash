@@ -480,19 +480,15 @@ export const scheduleMaintenance = mutation({
         ctx.db.get(companyId),
       ]);
       if (tenant?.email) {
-        try {
-          await sendMaintenanceStatusUpdatedEmail(
-            tenant.email,
-            tenant.name,
-            req.title,
-            "scheduled",
-            property?.name ?? "Property",
-            unit?.unitNumber ?? "Unit",
-            company?.name
-          );
-        } catch (error) {
-          console.error("Failed to send tenant schedule email:", error);
-        }
+        await ctx.scheduler.runAfter(0, internal.emailActions.sendMaintenanceStatusUpdated, {
+          tenantEmail: tenant.email,
+          tenantName: tenant.name,
+          maintenanceTitle: req.title,
+          newStatus: "scheduled",
+          propertyName: property?.name ?? "Property",
+          unitNumber: unit?.unitNumber ?? "Unit",
+          companyName: company?.name,
+        });
       }
     }
 

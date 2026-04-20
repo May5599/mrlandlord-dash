@@ -7,6 +7,10 @@ import {
   sendMaintenanceCompletedEmail,
   sendMaintenanceStatusUpdatedEmail,
   sendMaintenanceSubmittedEmail,
+  sendTenantWelcomeEmail,
+  sendTenantMovedOutEmail,
+  sendVendorWelcomeEmail,
+  sendPropertyCreatedEmail,
 } from "./_lib/emailService";
 
 export const sendPasswordReset = internalAction({
@@ -110,6 +114,61 @@ export const sendMaintenanceCompleted = internalAction({
       args.maintenanceTitle,
       args.companyName
     );
+  },
+});
+
+export const sendTenantWelcome = internalAction({
+  args: {
+    tenantEmail: v.string(),
+    tenantName: v.string(),
+    propertyName: v.string(),
+    unitNumber: v.string(),
+    leaseStart: v.string(),
+    companyName: v.optional(v.string()),
+  },
+  handler: async (_ctx, args) => {
+    await sendTenantWelcomeEmail(args.tenantEmail, args.tenantName, args.propertyName, args.unitNumber, args.leaseStart, args.companyName);
+  },
+});
+
+export const sendTenantMovedOut = internalAction({
+  args: {
+    tenantEmail: v.string(),
+    tenantName: v.string(),
+    propertyName: v.string(),
+    unitNumber: v.string(),
+    moveOutDate: v.string(),
+    companyName: v.optional(v.string()),
+  },
+  handler: async (_ctx, args) => {
+    await sendTenantMovedOutEmail(args.tenantEmail, args.tenantName, args.propertyName, args.unitNumber, args.moveOutDate, args.companyName);
+  },
+});
+
+export const sendVendorWelcome = internalAction({
+  args: {
+    vendorEmail: v.string(),
+    vendorName: v.string(),
+    specialty: v.optional(v.string()),
+    companyName: v.optional(v.string()),
+  },
+  handler: async (_ctx, args) => {
+    await sendVendorWelcomeEmail(args.vendorEmail, args.vendorName, args.specialty, args.companyName);
+  },
+});
+
+export const sendPropertyCreated = internalAction({
+  args: {
+    recipientEmail: v.string(),
+    recipientName: v.string(),
+    propertyName: v.string(),
+    address: v.string(),
+    city: v.string(),
+    postalCode: v.string(),
+    companyName: v.optional(v.string()),
+  },
+  handler: async (_ctx, args) => {
+    await sendPropertyCreatedEmail(args.recipientEmail, args.recipientName, args.propertyName, args.address, args.city, args.postalCode, args.companyName);
   },
 });
 

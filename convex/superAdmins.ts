@@ -2,7 +2,7 @@ import {
   notifyCompanyAdmin,
   notifySuperAdmin,
 } from "./services/notificationService";
-import { sendAdminAccountCreatedEmail, sendPasswordResetEmail } from "./_lib/emailService";
+import { internal } from "./_generated/api";
 
 import { generatePassword } from "../lib/generatePassword";
 // import { sendLoginEmail } from "../lib/email";
@@ -133,11 +133,12 @@ export const createCompanyWithAdmin = mutation({
       createdAt: new Date().toISOString(),
     });
 
-    try {
-      await sendAdminAccountCreatedEmail(args.adminName, args.adminEmail, args.companyName, generatedPassword);
-    } catch (error) {
-      console.error("Failed to send admin account created email:", error);
-    }
+    await ctx.scheduler.runAfter(0, internal.emailActions.sendAdminAccountCreated, {
+      adminName: args.adminName,
+      adminEmail: args.adminEmail,
+      companyName: args.companyName,
+      password: generatedPassword,
+    });
 
 
     return { success: true };
@@ -491,11 +492,11 @@ export const requestPasswordReset = mutation({
 
 
 
-    try {
-      await sendPasswordResetEmail(admin.email, admin.name, resetLink);
-    } catch (error) {
-      console.error("Failed to send password reset email:", error);
-    }
+    await ctx.scheduler.runAfter(0, internal.emailActions.sendPasswordReset, {
+      email: admin.email,
+      name: admin.name,
+      resetLink,
+    });
 
     return { success: true };
   },

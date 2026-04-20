@@ -1,8 +1,8 @@
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { v4 as uuidv4 } from "uuid";
-import { hashPassword } from "../convex/_lib/password";
-import { sendPasswordResetEmail } from "./_lib/emailService";
+import { hashPassword, comparePassword } from "../convex/_lib/password";
+import { internal } from "./_generated/api";
 
 /**
  * Tenant login lookup by email
@@ -48,11 +48,11 @@ export const requestPasswordReset = mutation({
       "/tenant/reset-password?token=" +
       resetToken;
 
-    try {
-      await sendPasswordResetEmail(tenant.email, tenant.name, resetLink);
-    } catch (e) {
-      console.error("Failed to send reset email:", e);
-    }
+    await ctx.scheduler.runAfter(0, internal.emailActions.sendPasswordReset, {
+      email: tenant.email,
+      name: tenant.name,
+      resetLink,
+    });
 
     return { success: true };
   },

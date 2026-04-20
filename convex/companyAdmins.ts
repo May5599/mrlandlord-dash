@@ -3,7 +3,7 @@ import { v } from "convex/values";
 import { v4 as uuidv4 } from "uuid";
 import type { MutationCtx } from "./_generated/server";
 import { hashPassword, comparePassword } from "../convex/_lib/password";
-import { sendPasswordResetEmail } from "./_lib/emailService";
+import { internal } from "./_generated/api";
 
 /* ------------------ ADMIN CREATION ------------------ */
 
@@ -169,11 +169,11 @@ export const requestPasswordReset = mutation({
       "/reset-password?token=" +
       resetToken;
 
-    try {
-      await sendPasswordResetEmail(admin.email, admin.email, resetLink);
-    } catch (e) {
-      console.error("Failed to send reset email:", e);
-    }
+    await ctx.scheduler.runAfter(0, internal.emailActions.sendPasswordReset, {
+      email: admin.email,
+      name: admin.email,
+      resetLink,
+    });
 
     return { success: true };
   },

@@ -98,6 +98,7 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -193,6 +194,12 @@ export default function LoginPage() {
             >
               {loading ? "Signing in..." : "Login"}
             </button>
+
+            <div className="text-center">
+              <Link href="/forgot-password" className="text-sm text-gray-500 hover:text-indigo-600">
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
         </div>

@@ -64,6 +64,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export default function TenantLoginPage() {
   const [email, setEmail] = useState("");
@@ -161,6 +162,12 @@ export default function TenantLoginPage() {
             >
               {loading ? "Signing in..." : "Login"}
             </button>
+
+            <div className="text-center">
+              <Link href="/tenant/forgot-password" className="text-sm text-gray-500 hover:text-indigo-600">
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
         </div>

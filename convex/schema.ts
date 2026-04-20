@@ -41,6 +41,8 @@ companyAdmins: defineTable({
   email: v.string(),
   passwordHash: v.string(),
   mustChangePassword: v.optional(v.boolean()),
+  resetToken: v.optional(v.string()),
+  resetTokenExpiresAt: v.optional(v.number()),
   createdAt: v.string(),
 })
 
@@ -187,6 +189,8 @@ companyAdminSessions: defineTable({
     tempPasswordHash: v.optional(v.string()),
     passwordHash: v.optional(v.string()),
     onboardingStatus: v.optional(v.string()),
+    resetToken: v.optional(v.string()),
+    resetTokenExpiresAt: v.optional(v.number()),
   })
     .index("by_company", ["companyId"])
     .index("by_email", ["email"])
